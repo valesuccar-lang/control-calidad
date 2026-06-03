@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: Estación7/Control-Calidad
+        working-directory: Estación7/CC-01-setup-infraestructura-backend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: Estación7/Control-Calidad
+        working-directory: Estación7/CC-01-setup-infraestructura-backend
 
     services:
       postgres:
@@ -66,7 +66,7 @@ jobs:
     needs: [lint, test]
     defaults:
       run:
-        working-directory: Estación7/Control-Calidad
+        working-directory: Estación7/CC-01-setup-infraestructura-backend
     steps:
       - uses: actions/checkout@v4
       - name: Build Docker image
