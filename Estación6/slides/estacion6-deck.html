@@ -1,0 +1,902 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Estación 6 - Implementando</title>
+  <style>
+    :root {
+      --primary: #C8E600;
+      --on-primary: #1A1A1A;
+      --background: #0A0A0A;
+      --surface: #1A1A1A;
+      --surface-raised: #262626;
+      --separator: #2A2A2A;
+      --text: #FFFFFF;
+      --text-body: #E6E6E6;
+      --text-muted: #808080;
+      --text-faint: #4D4D4D;
+      --keypoint-bg: #1F2A05;
+      --demo: #FF8C00;
+      --demo-bg: #3A1F00;
+      --slide-w: 1280px;
+      --slide-h: 720px;
+      color-scheme: dark;
+      font-family: Calibri, Aptos, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #050505;
+      color: var(--text-body);
+      font-family: Calibri, Aptos, Arial, sans-serif;
+    }
+
+    .edit-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      min-height: 44px;
+      padding: 10px 18px;
+      background: rgba(10, 10, 10, 0.92);
+      border-bottom: 1px solid var(--separator);
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.25;
+      backdrop-filter: blur(12px);
+    }
+
+    .edit-toolbar strong {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .deck {
+      display: grid;
+      justify-items: center;
+      gap: 32px;
+      padding: 32px;
+    }
+
+    .slide {
+      position: relative;
+      width: var(--slide-w);
+      height: var(--slide-h);
+      overflow: hidden;
+      padding: 44px 64px 58px;
+      background: var(--background);
+      border: 1px solid var(--separator);
+      border-radius: 0;
+      box-shadow: 0 22px 64px rgba(0, 0, 0, 0.42);
+      isolation: isolate;
+    }
+
+    .slide:focus {
+      outline: 3px solid rgba(200, 230, 0, 0.44);
+      outline-offset: 8px;
+    }
+
+    .content::before,
+    .diagram::before,
+    .task::before {
+      content: "";
+      position: absolute;
+      top: 36px;
+      left: 64px;
+      width: 88px;
+      height: 5px;
+      background: var(--primary);
+      z-index: 1;
+    }
+
+    .visual::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.84), rgba(0, 0, 0, 0.54) 48%, rgba(0, 0, 0, 0.88)),
+        linear-gradient(0deg, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.15) 46%, rgba(0, 0, 0, 0.72)),
+        url("assets/estacion6-tech-stage.svg") center / cover no-repeat;
+    }
+
+    .visual::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background:
+        linear-gradient(90deg, rgba(200, 230, 0, 0.10), transparent 30%),
+        linear-gradient(180deg, transparent 68%, rgba(0, 0, 0, 0.78));
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      margin: 16px 0 22px;
+      color: var(--primary);
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    p {
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      max-width: 1030px;
+      color: var(--text);
+      font-size: 42px;
+      font-weight: 700;
+      line-height: 1.12;
+    }
+
+    .cover h1 {
+      max-width: 760px;
+      font-size: 72px;
+      line-height: 0.98;
+    }
+
+    .section h1 {
+      max-width: 880px;
+      margin: 0 auto;
+      font-size: 60px;
+      line-height: 1.02;
+      text-align: center;
+    }
+
+    .subtitle {
+      max-width: 760px;
+      margin-top: 20px;
+      color: var(--text-body);
+      font-size: 24px;
+      font-weight: 400;
+      line-height: 1.3;
+    }
+
+    .cover .subtitle {
+      max-width: 820px;
+      color: var(--text-body);
+      font-size: 26px;
+    }
+
+    .section .subtitle {
+      max-width: 760px;
+      margin: 26px auto 0;
+      text-align: center;
+    }
+
+    .cover-lockup {
+      position: absolute;
+      left: 64px;
+      right: 64px;
+      bottom: 94px;
+    }
+
+    .section-lockup {
+      display: grid;
+      align-content: center;
+      height: 100%;
+      padding: 20px 38px 54px;
+    }
+
+    .body {
+      margin-top: 28px;
+      font-size: 21px;
+      line-height: 1.35;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 25px;
+    }
+
+    li {
+      color: var(--text-body);
+      font-size: 21px;
+      line-height: 1.35;
+    }
+
+    li + li {
+      margin-top: 10px;
+    }
+
+    code {
+      color: var(--text);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.84em;
+      background: var(--surface);
+      border: 1px solid var(--separator);
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 28px;
+      align-items: start;
+    }
+
+    .wide-col {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 32px;
+      align-items: stretch;
+    }
+
+    .rows {
+      display: grid;
+      gap: 0;
+      border-top: 1px solid var(--separator);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 170px 1fr;
+      gap: 20px;
+      align-items: start;
+      min-height: 62px;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--separator);
+      color: var(--text-body);
+      font-size: 20px;
+      line-height: 1.28;
+    }
+
+    .row strong {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .tag-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .tag-grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .tag {
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      padding: 13px 15px;
+      background: var(--surface);
+      border: 1px solid var(--separator);
+      border-radius: 4px;
+      color: var(--text-body);
+      font-size: 19px;
+      line-height: 1.18;
+    }
+
+    .tag.primary {
+      background: var(--keypoint-bg);
+      border-color: rgba(200, 230, 0, 0.28);
+      color: var(--text);
+    }
+
+    .number-list {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 13px;
+      counter-reset: steps;
+    }
+
+    .step {
+      min-height: 112px;
+      padding: 16px 16px 14px;
+      background: var(--surface);
+      border: 1px solid var(--separator);
+      border-radius: 4px;
+      color: var(--text-body);
+      font-size: 20px;
+      line-height: 1.24;
+      counter-increment: steps;
+    }
+
+    .step::before {
+      content: counter(steps, decimal-leading-zero);
+      display: block;
+      margin-bottom: 12px;
+      color: var(--primary);
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .demo-band {
+      position: absolute;
+      left: 64px;
+      right: 64px;
+      bottom: 86px;
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--demo-bg);
+      border-left: 5px solid var(--demo);
+      color: var(--text);
+      font-size: 19px;
+      line-height: 1.25;
+    }
+
+    .keypoint {
+      margin-top: 24px;
+      padding: 16px 18px;
+      background: var(--keypoint-bg);
+      border: 1px solid rgba(200, 230, 0, 0.22);
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 19px;
+      line-height: 1.3;
+    }
+
+    .keypoint strong {
+      color: var(--primary);
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 42px;
+      align-items: stretch;
+    }
+
+    .flow-node {
+      position: relative;
+      min-height: 118px;
+      display: grid;
+      align-content: center;
+      padding: 16px 10px;
+      background: var(--surface);
+      border: 1px solid var(--separator);
+      color: var(--text-body);
+      text-align: center;
+      font-size: 18px;
+      line-height: 1.14;
+      border-radius: 4px;
+    }
+
+    .flow-node.main {
+      background: var(--keypoint-bg);
+      border-color: rgba(200, 230, 0, 0.38);
+      color: var(--text);
+    }
+
+    .flow-node + .flow-node::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: -12px;
+      width: 12px;
+      height: 2px;
+      background: var(--primary);
+      opacity: 0.9;
+    }
+
+    .flow-node + .flow-node::after {
+      content: "";
+      position: absolute;
+      top: calc(50% - 4px);
+      left: -5px;
+      width: 8px;
+      height: 8px;
+      border-top: 2px solid var(--primary);
+      border-right: 2px solid var(--primary);
+      transform: rotate(45deg);
+    }
+
+    .hub-diagram {
+      position: relative;
+      height: 430px;
+      margin-top: 28px;
+    }
+
+    .hub {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 250px;
+      min-height: 126px;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+      background: var(--keypoint-bg);
+      border: 1px solid rgba(200, 230, 0, 0.42);
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1.1;
+      text-align: center;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+    }
+
+    .spoke {
+      position: absolute;
+      width: 214px;
+      min-height: 68px;
+      display: grid;
+      place-items: center;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--separator);
+      border-radius: 4px;
+      color: var(--text-body);
+      font-size: 19px;
+      line-height: 1.2;
+      text-align: center;
+    }
+
+    .spoke::before {
+      content: "";
+      position: absolute;
+      background: var(--primary);
+      opacity: 0.45;
+      z-index: -1;
+    }
+
+    .spoke.s1 { left: 90px; top: 34px; }
+    .spoke.s2 { left: 90px; bottom: 46px; }
+    .spoke.s3 { left: calc(50% - 107px); top: 0; }
+    .spoke.s4 { right: 90px; top: 34px; }
+    .spoke.s5 { right: 90px; bottom: 46px; }
+    .spoke.s6 { left: calc(50% - 107px); bottom: 0; }
+
+    .spoke.s1::before,
+    .spoke.s4::before {
+      top: 50%;
+      width: 210px;
+      height: 2px;
+    }
+
+    .spoke.s1::before { left: 100%; transform: rotate(20deg); transform-origin: left; }
+    .spoke.s4::before { right: 100%; transform: rotate(-20deg); transform-origin: right; }
+
+    .spoke.s2::before,
+    .spoke.s5::before {
+      top: 50%;
+      width: 210px;
+      height: 2px;
+    }
+
+    .spoke.s2::before { left: 100%; transform: rotate(-18deg); transform-origin: left; }
+    .spoke.s5::before { right: 100%; transform: rotate(18deg); transform-origin: right; }
+
+    .spoke.s3::before,
+    .spoke.s6::before {
+      left: 50%;
+      width: 2px;
+      height: 112px;
+    }
+
+    .spoke.s3::before { top: 100%; }
+    .spoke.s6::before { bottom: 100%; }
+
+    .work-system {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 26px;
+    }
+
+    .work-system .tag {
+      min-height: 72px;
+      font-size: 20px;
+    }
+
+    .task-layout {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 34px;
+      margin-top: 28px;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 10px;
+    }
+
+    .check {
+      display: grid;
+      grid-template-columns: 22px 1fr;
+      gap: 12px;
+      align-items: start;
+      color: var(--text-body);
+      font-size: 20px;
+      line-height: 1.25;
+    }
+
+    .check::before {
+      content: "";
+      width: 14px;
+      height: 14px;
+      margin-top: 5px;
+      border: 2px solid var(--primary);
+      border-radius: 3px;
+      background: transparent;
+    }
+
+    .closing {
+      align-self: end;
+      padding: 20px;
+      background: var(--surface);
+      border: 1px solid var(--separator);
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 23px;
+      line-height: 1.28;
+    }
+
+    .footer {
+      position: absolute;
+      left: 64px;
+      right: 64px;
+      bottom: 28px;
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(42, 42, 42, 0.82);
+      color: var(--text-faint);
+      font-size: 12px;
+      line-height: 1.2;
+      z-index: 3;
+    }
+
+    .visual .footer {
+      border-top-color: rgba(200, 230, 0, 0.12);
+      color: rgba(230, 230, 230, 0.42);
+    }
+
+    @media print {
+      @page {
+        size: 13.333in 7.5in;
+        margin: 0;
+      }
+
+      body {
+        background: var(--background);
+      }
+
+      .edit-toolbar {
+        display: none;
+      }
+
+      .deck {
+        display: block;
+        padding: 0;
+      }
+
+      .slide {
+        width: 13.333in;
+        height: 7.5in;
+        margin: 0;
+        border: 0;
+        box-shadow: none;
+        break-after: page;
+        page-break-after: always;
+      }
+
+      .slide:focus {
+        outline: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <aside class="edit-toolbar" contenteditable="false">
+    <span><strong>Deck editable:</strong> haz clic en cualquier slide para ajustar texto durante la demo.</span>
+    <span>Fuente: PRODUCT.md + DESIGN.md + slides/estacion6-slides.md</span>
+  </aside>
+
+  <main class="deck">
+    <section class="slide cover visual" contenteditable="true" spellcheck="true" aria-label="Slide 1 Cover">
+      <div class="cover-lockup">
+        <p class="eyebrow">ESTACIÓN 6 · COHORTE 2</p>
+        <h1>Implementando</h1>
+        <p class="subtitle">Scaffolding, diseño agencial y sistemas de ejecución</p>
+      </div>
+      <footer class="footer" contenteditable="false"><span>Hardcore AI by 30X · Estación 6</span><span>01</span></footer>
+    </section>
+
+    <section class="slide content" contenteditable="true" spellcheck="true" aria-label="Slide 2 Demo inicial">
+      <p class="eyebrow">LIVE CODING</p>
+      <h1>Primero generamos este deck</h1>
+      <div class="body number-list">
+        <div class="step">Leer <code>PRODUCT.md</code>.</div>
+        <div class="step">Leer <code>DESIGN.md</code>.</div>
+        <div class="step">Usar este storyboard Markdown.</div>
+        <div class="step">Generar slides HTML.</div>
+        <div class="step">Renderizar PDF.</div>
+        <div class="step">Usar el resultado durante la sesión.</div>
+      </div>
+      <div class="demo-band">SIGUE DEMO: contexto canónico → HTML → PDF → clase</div>
+      <footer class="footer" contenteditable="false"><span>Hardcore AI by 30X · Estación 6</span><span>02</span></footer>
+    </section>
+
+    <section class="slide section visual" contenteditable="true" spellcheck="true" aria-label="Slide 3 Diseño UX agencial">
+      <div class="section-lockup">
+        <p class="eyebrow">DESIGN STANDARDS AND SKILLS</p>
+        <h1>Skills dan hábitos. DESIGN.md da memoria.</h1>
+        <p class="subtitle">Estándares y skills de diseño según el artículo "Fixing Visual AI Slop".</p>
+      </div>
+      <footer class="footer" contenteditable="false"><span>Hardcore AI by 30X · Estación 6</span><span>03</span></footer>
+    </section>
+
+    <section class="slide content" contenteditable="true" spellcheck="true" aria-label="Slide 4 Instalación de skills">
+      <p class="eyebrow">SETUP</p>
+      <h1>El agente necesita hábitos instalados</h1>
+      <div class="body tag-grid">
+        <div class="tag primary">Impeccable</div>
+        <div class="tag">Make Interfaces Feel Better</div>
+        <div class="tag">Web Design Guidelines</div>
+        <div class="tag">Userinterface Wiki</div>
+        <div class="tag">Accessibility · Best Practices · Core Web Vitals · Performance · SEO</div>
+        <div class="tag">React Best Practices</div>
+        <div class="tag">Imagegen</div>
+        <div class="tag primary">Google DESIGN.md</div>
+      </div>
+      <footer class="footer" contenteditable="false"><span>Hardcore AI by 30X · Estación 6</span><span>04</span></footer>
+    </section>
+
+    <section class="slide content" contenteditable="true" spellcheck="true" aria-label="Slide 5 PRODUCT.md y DESIGN.md">
+      <p class="eyebrow">MEMORIA DEL PRODUCTO</p>
+      <h1>Criterio y memoria visual viven en archivos</h1>
+      <div class="body rows">
+        <div class="row"><strong>PRODUCT.md</strong><span>Audiencia, propósito, tono y promesa.</span></div>
+        <div class="row"><strong>DESIGN.md</strong><span>Tokens, componentes, layout y anti-patrones.</span></div>
+        <div class="row"><strong>Linting</strong><span>Estructura revisable antes de producir artefactos.</span></div>
+        <div class="row"><strong>Skills</strong><span>Revisión y ejecución con mejores defaults.</span></div>
+      </div>
+      <footer class="footer" contenteditable="false"><span>Hardcore AI by 30X · Estación 6</span><span>05</span></footer>
+    </section>
+
+    <section class="slide content" contenteditable="true" spellcheck="true" aria-label="Slide 6 Punto de partida">
+      <p class="eyebrow">YA DEBERÍAS TENER</p>
+      <h1>El agente empieza con contexto verificable</h1>
+      <div class="body two-col">
+        <ul>
+          <li>PRD o ISB con problema definido.</li>
+          <li>Artefactos de Inception.</li>
+          <li>Unidad o tareas priorizadas.</li>
+        </ul>
+        <ul>
+          <li>Diseño de Construction o contrato suficiente.</li>
+          <li>Repo o sandbox listo para ejecución.</li>
+        </ul>
+      </div>
+      <div class="keypoint"><strong>Key point:</strong> Contexto explícito convierte una tarea en trabajo ejecutable.</div>
+      <footer class="footer" contenteditable="false"><span>Hardcore AI by 30X · Estación 6</span><span>06</span></footer>
+    </section>
+
+    <section class="slide content" contenteditable="true" spellcheck="true" aria-label="Slide 7 Cambio de nivel">
+      <p class="eyebrow">ZOOM OUT</p>
+      <h1>La pregunta central: qué sistema permite producir</h1>
+      <div class="body rows">
+        <div class="row"><strong>Spec</strong><span>Contrato de entrada.</span></div>
+        <div class="row"><strong>Arnés</strong><span>Superficie de ejecución.</span></div>
+        <div class="row"><strong>Orquestación</strong><span>Coordinación de alcance, contexto y trabajo.</span></div>
+        <div class="row"><strong>Evidencia</strong><span>Cierre verificable del trabajo.</span></div>
+      </div>
+      <footer class="footer" contenteditable="false"><span>Hardcore AI by 30X · Estación 6</span><span>07</span></footer>
+    </section>
+
+    <section class="slide content" contenteditable="true" spellcheck="true" aria-label="Slide 8 Scaffolding">
+      <p class="eyebrow">CONTEXTO OPERATIVO</p>
+      <h1>Antes de ejecutar, prepara el terreno</h1>
+      <div class="body tag-grid three">
+        <div class="tag primary">Unidad o feature</div>
+        <div class="tag">Tareas pequeñas</div>
+        <div class="tag">Criterios de aceptación</div>
+        <div class="tag">Comandos de validación</div>
+        <div class="tag">Contexto operativo</div>
+        <div class="tag primary">Evidencia esperada</div>
+      </div>
+      <footer class="footer" contenteditable="false"><span>Hardcore AI by 30X · Estación 6</span><span>08</span></footer>
+    </section>
+
+    <section class="slide diagram" contenteditable="true" spellcheck="true" aria-label="Slide 9 Mapa completo">
+      <p class="eyebrow">TAXONOMÍA</p>
+      <h1>Modelos, inferencia, arneses, orquestación</h1>
+      <div class="flow" aria-label="Taxonomía de capas">
+        <div class="flow-node main">Model Labs</div>
+        <div class="flow-node">Proveedores de inferencia</div>
+        <div class="flow-node">Agent Labs</div>
+        <div class="flow-node">Arneses</div>
+        <div class="flow-node">Orquestadores</div>
+        <div class="flow-node">Sistemas de trabajo</div>
+        <div class="flow-node main">Evidencia</div>
+      </div>
+      <div class="keypoint">Separar capas que suelen mezclarse en conversaciones de herramientas.</div>
+      <footer class="footer" contenteditable="false"><span>Hardcore AI by 30X · Estación 6</span><span>09</span></footer>
+    </section>
+
+    <section class="slide content" contenteditable="true" spellcheck="true" aria-label="Slide 10 Model Labs">
+      <p class="eyebrow">CAPA 1</p>
+      <h1>El modelo marca capacidades</h1>
+      <div class="body tag-grid three">
+        <div class="tag primary">Razonamiento</div>
+        <div class="tag">Código</div>
+        <div class="tag">Seguimiento de instrucciones</div>
+        <div class="tag">Multimodalidad</div>
+        <div class="tag">Contexto largo</div>
+        <div class="tag primary">Latencia percibida</div>
+      </div>
+      <footer class="footer" contenteditable="false"><span>Hardcore AI by 30X · Estación 6</span><span>10</span></footer>
+    </section>
+
+    <section class="slide content" contenteditable="true" spellcheck="true" aria-label="Slide 11 Proveedores de inferencia">
+      <p class="eyebrow">CAPA 2</p>
+      <h1>Inferencia convierte capacidad en operación</h1>
+      <div class="body tag-grid">
+        <div class="tag primary">Ventana de contexto</div>
+        <div class="tag">Cache tokens</div>
+        <div class="tag">Tool calling</div>
+        <div class="tag">Multimodalidad</div>
+        <div class="tag">Throughput y latencia</div>
+        <div class="tag">Costo operativo</div>
+        <div class="tag primary">Límites de API</div>
+      </div>
+      <footer class="footer" contenteditable="false"><span>Hardcore AI by 30X · Estación 6</span><span>11</span></footer>
+    </section>
+
+    <section class="slide content" contenteditable="true" spellcheck="true" aria-label="Slide 12 Benchmarks y señales">
+      <p class="eyebrow">EVALUACIÓN DE CAPACIDADES</p>
+      <h1>Benchmarks ayudan a calibrar expectativas</h1>
+      <div class="body two-col">
+        <ul>
+          <li>Terminal Bench.</li>
+          <li>Artificial Analysis.</li>
+          <li>Benchmarks de código y razonamiento.</li>
+        </ul>
+        <ul>
+          <li>Pruebas reales sobre tu repo.</li>
+          <li>Costo y latencia en contexto operativo.</li>
+        </ul>
+      </div>
+      <div class="keypoint"><strong>Key point:</strong> Un benchmark orienta; la evidencia de tu repo decide.</div>
+      <footer class="footer" contenteditable="false"><span>Hardcore AI by 30X · Estación 6</span><span>12</span></footer>
+    </section>
+
+    <section class="slide content" contenteditable="true" spellcheck="true" aria-label="Slide 13 Agent Labs y arneses">
+      <p class="eyebrow">CAPA 3</p>
+      <h1>El arnés es donde el agente toca el mundo</h1>
+      <div class="body tag-grid three">
+        <div class="tag primary">Lee archivos</div>
+        <div class="tag">Ejecuta comandos</div>
+        <div class="tag">Edita código</div>
+        <div class="tag">Usa permisos</div>
+        <div class="tag">Observa resultados</div>
+        <div class="tag primary">Devuelve evidencia</div>
+      </div>
+      <footer class="footer" contenteditable="false"><span>Hardcore AI by 30X · Estación 6</span><span>13</span></footer>
+    </section>
+
+    <section class="slide content" contenteditable="true" spellcheck="true" aria-label="Slide 14 Arneses en el mapa">
+      <p class="eyebrow">EJEMPLOS</p>
+      <h1>Superficies distintas, trabajo verificable</h1>
+      <div class="body wide-col">
+        <div class="tag-grid">
+          <div class="tag primary">Claude Code</div>
+          <div class="tag">Codex</div>
+          <div class="tag">OpenHands</div>
+          <div class="tag">Factory</div>
+          <div class="tag">OpenCode</div>
+          <div class="tag">Antigravity 2</div>
+          <div class="tag">Pi</div>
+        </div>
+        <div class="keypoint" style="margin-top:0;">Presentar características observables: superficie, permisos, contexto, ejecución, validación y evidencia.</div>
+      </div>
+      <footer class="footer" contenteditable="false"><span>Hardcore AI by 30X · Estación 6</span><span>14</span></footer>
+    </section>
+
+    <section class="slide diagram" contenteditable="true" spellcheck="true" aria-label="Slide 15 Anatomía de un arnés productivo">
+      <p class="eyebrow">HARNESS DESIGN</p>
+      <h1>Seis piezas mínimas</h1>
+      <div class="hub-diagram" aria-label="Anatomía de un arnés productivo">
+        <div class="hub">Arnés productivo</div>
+        <div class="spoke s1">Tools</div>
+        <div class="spoke s2">Contexto repo-local</div>
+        <div class="spoke s3">Permisos</div>
+        <div class="spoke s4">Validación</div>
+        <div class="spoke s5">Observabilidad</div>
+        <div class="spoke s6">Evidencia</div>
+      </div>
+      <footer class="footer" contenteditable="false"><span>Hardcore AI by 30X · Estación 6</span><span>15</span></footer>
+    </section>
+
+    <section class="slide content" contenteditable="true" spellcheck="true" aria-label="Slide 16 Sistema de trabajo">
+      <p class="eyebrow">WORK MANAGEMENT</p>
+      <h1>El backlog también es contexto</h1>
+      <div class="work-system">
+        <div class="tag primary">Beads</div>
+        <div class="tag">Linear</div>
+        <div class="tag">GitHub Issues</div>
+        <div class="tag">Markdown local</div>
+        <div class="tag">Issues como unidades de ejecución</div>
+        <div class="tag primary">PRs como evidencia de cambio</div>
+      </div>
+      <div class="keypoint">Preparar el puente hacia Estación 7.</div>
+      <footer class="footer" contenteditable="false"><span>Hardcore AI by 30X · Estación 6</span><span>16</span></footer>
+    </section>
+
+    <section class="slide content" contenteditable="true" spellcheck="true" aria-label="Slide 17 Orquestación">
+      <p class="eyebrow">CAPA 4</p>
+      <h1>Orquestar coordina alcance, contexto y ejecución</h1>
+      <div class="body tag-grid three">
+        <div class="tag primary">Divide trabajo</div>
+        <div class="tag">Controla dependencias</div>
+        <div class="tag">Asigna agentes o arneses</div>
+        <div class="tag">Recoge evidencia</div>
+        <div class="tag">Coordina validación</div>
+        <div class="tag primary">Mantiene continuidad</div>
+      </div>
+      <footer class="footer" contenteditable="false"><span>Hardcore AI by 30X · Estación 6</span><span>17</span></footer>
+    </section>
+
+    <section class="slide content" contenteditable="true" spellcheck="true" aria-label="Slide 18 Señales para subir de abstracción">
+      <p class="eyebrow">CRITERIO</p>
+      <h1>La coordinación crece con el sistema</h1>
+      <div class="body tag-grid three">
+        <div class="tag primary">Muchas tareas dependientes</div>
+        <div class="tag">Varios agentes o ramas</div>
+        <div class="tag">Validación como bloqueo</div>
+        <div class="tag">Handoffs frecuentes</div>
+        <div class="tag">Evidencia dispersa</div>
+        <div class="tag primary">Repetición suficiente para automatizar</div>
+      </div>
+      <footer class="footer" contenteditable="false"><span>Hardcore AI by 30X · Estación 6</span><span>18</span></footer>
+    </section>
+
+    <section class="slide content" contenteditable="true" spellcheck="true" aria-label="Slide 19 Orquestación en el horizonte">
+      <p class="eyebrow">PUENTE A ESTACIÓN 7</p>
+      <h1>Un orquestador organiza trabajo, agentes y evidencia</h1>
+      <div class="body tag-grid three">
+        <div class="tag primary">Tareas con schema</div>
+        <div class="tag">Dependencias</div>
+        <div class="tag">Checkpoints</div>
+        <div class="tag">Estados</div>
+        <div class="tag">Validaciones</div>
+        <div class="tag primary">Handoffs</div>
+      </div>
+      <footer class="footer" contenteditable="false"><span>Hardcore AI by 30X · Estación 6</span><span>19</span></footer>
+    </section>
+
+    <section class="slide task" contenteditable="true" spellcheck="true" aria-label="Slide 20 Tarea">
+      <p class="eyebrow">ENTREGA PARA ESTACIÓN 7</p>
+      <h1>Prepara tu scaffolding operativo</h1>
+      <div class="task-layout">
+        <div class="checklist">
+          <div class="check"><span>Ficha de arnés.</span></div>
+          <div class="check"><span><code>AGENTS.md</code> o equivalente.</span></div>
+          <div class="check"><span>Una skill de proyecto.</span></div>
+          <div class="check"><span><code>PRODUCT.md</code> y <code>DESIGN.md</code> si hay interfaz.</span></div>
+          <div class="check"><span>Validaciones disponibles.</span></div>
+          <div class="check"><span>Nota de orquestación futura.</span></div>
+        </div>
+        <div class="closing">La próxima estación convierte AI-DLC en trabajo orquestable.</div>
+      </div>
+      <footer class="footer" contenteditable="false"><span>Hardcore AI by 30X · Estación 6</span><span>20</span></footer>
+    </section>
+  </main>
+</body>
+</html>

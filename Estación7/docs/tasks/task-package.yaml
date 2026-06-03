@@ -1,0 +1,663 @@
+project: "Control de Calidad 2"
+wave: "entrevista-auth-lambda-implementation"
+generated: "2026-06-02"
+source: "Estación5/Control-Calidad/aidlc-docs/construction"
+
+milestones:
+  - id: M1
+    name: "MVP Foundation"
+    days: "1-30"
+    goal: "Sistema operativo captura + aprobación + maestros"
+  - id: M2
+    name: "Enhancement Wave"
+    days: "31-60"
+    goal: "Análisis + Reportes + Offline básico"
+  - id: M3
+    name: "Optimization & Go-Live"
+    days: "61-90"
+    goal: "Sync bidireccional + Go-live + Adopción ≥90%"
+
+tasks:
+
+  # ─── UNIDAD 1: BACKEND API ───────────────────────────────────────────────
+
+  - id: CC-01
+    title: "Setup infraestructura Backend API"
+    unit: "backend-api-unidad-1"
+    milestone: M1
+    priority: urgent
+    estimate: "2d"
+    dependencies: []
+    labels: [backend, infrastructure, setup]
+    definition: |
+      Configurar el proyecto FastAPI con PostgreSQL, estructura de carpetas DDD,
+      migraciones Alembic y pipeline CI/CD básico en GitHub Actions.
+    acceptance_criteria:
+      - PostgreSQL local corriendo con esquema inicial
+      - Proyecto FastAPI estructurado (domain/, routes/, schemas/, repos/)
+      - Alembic configurado con primera migración
+      - GitHub Actions: lint + test en cada push
+      - README con instrucciones de setup local
+    test_plan:
+      - Correr `alembic upgrade head` sin errores
+      - `pytest` pasa con 0 tests (estructura válida)
+      - Pipeline CI verde en PR de prueba
+    context_refs:
+      - "construction/backend-api-unidad 1/backend-api-implementation-plan.md#Fase1"
+      - "construction/backend-api-unidad 1/domain-entities.md"
+
+  - id: CC-02
+    title: "Implementar dominio y entidades DDD"
+    unit: "backend-api-unidad-1"
+    milestone: M1
+    priority: urgent
+    estimate: "3d"
+    dependencies: [CC-01]
+    labels: [backend, domain, ddd]
+    definition: |
+      Implementar las entidades de dominio (Inspection, Approval, User, AuditLog),
+      Value Objects (DefectType, MachineStatus) y reglas de negocio con validación.
+    acceptance_criteria:
+      - Entidades con validación Pydantic v2
+      - Value Objects inmutables
+      - SQLAlchemy ORM models mapeados
+      - Business rules validadas en capa de dominio
+      - 100% cobertura en tests de entidades
+    test_plan:
+      - Unit tests: crear entidad válida e inválida por cada tipo
+      - Test de Value Objects (igualdad, inmutabilidad)
+      - Test de business rules (ej. comentario ≥10 chars)
+    context_refs:
+      - "construction/backend-api-unidad 1/domain-entities.md"
+      - "construction/backend-api-unidad 1/business-rules.md"
+      - "construction/backend-api-unidad 1/business-logic-model.md"
+
+  - id: CC-03
+    title: "APIs Core: Auth + Inspección + Aprobación"
+    unit: "backend-api-unidad-1"
+    milestone: M1
+    priority: urgent
+    estimate: "10d"
+    dependencies: [CC-02]
+    labels: [backend, api, auth, inspection, approval]
+    definition: |
+      Implementar endpoints REST para autenticación JWT (Login, Refresh, Logout),
+      Inspección (Create, Read, Update, List) y Aprobación (Get pending, Approve, Reject).
+      Incluye RBAC con roles: Admin, QA, Manager, Analyst.
+    acceptance_criteria:
+      - POST /auth/login → JWT access + refresh tokens
+      - POST /auth/refresh → nuevo access token
+      - POST /inspections → crea inspección con foto, tipo, máquina, comentario
+      - GET /inspections → lista paginada con filtros
+      - GET /approvals/pending → pendientes para Jefe QA
+      - POST /approvals/{id}/approve y /reject funcionan
+      - RBAC: Analyst solo puede crear, QA puede aprobar
+      - Error handling estándar (400/401/403/404/500)
+    test_plan:
+      - Integration tests con DB de test
+      - Test RBAC: Analyst no puede aprobar (403)
+      - Test JWT expirado → 401
+      - Load test básico: 50 req/s en /inspections
+    context_refs:
+      - "construction/backend-api-unidad 1/backend-api-implementation-plan.md#Fase3"
+      - "construction/backend-api-unidad 1/nfr-requirements-elicited.md"
+      - "construction/backend-api-unidad 1/nfr-design.md"
+
+  - id: CC-04
+    title: "APIs Maestros: Defectos, Máquinas, Telas"
+    unit: "backend-api-unidad-1"
+    milestone: M1
+    priority: high
+    estimate: "5d"
+    dependencies: [CC-02]
+    labels: [backend, api, masters]
+    definition: |
+      Implementar CRUD completo para los 3 catálogos maestros (Defectos, Máquinas, Telas)
+      con soft delete, paginación, filtros y audit logging en cada operación.
+    acceptance_criteria:
+      - CRUD para /defects, /machines, /fabrics
+      - Soft delete (inactivar, no borrar físicamente)
+      - Paginación en listados (page, size, total)
+      - Filtros por nombre, código, estado
+      - Audit log registrado por cada cambio (quién, cuándo, qué)
+    test_plan:
+      - Test soft delete: item inactivado no aparece en listados activos
+      - Test audit log: cada PUT genera entrada en audit_log
+      - Test paginación: página 2 con size=10 retorna items correctos
+    context_refs:
+      - "construction/Maestroyconfiguracion-unidad3/Business-Rules.md"
+      - "construction/Maestroyconfiguracion-unidad3/domain-entities.md"
+
+  - id: CC-05
+    title: "Testing y documentación Backend"
+    unit: "backend-api-unidad-1"
+    milestone: M1
+    priority: high
+    estimate: "8d"
+    dependencies: [CC-03, CC-04]
+    labels: [backend, testing, docs]
+    definition: |
+      Alcanzar ≥80% cobertura con pytest, documentación OpenAPI completa,
+      load testing básico y README con instrucciones de deploy.
+    acceptance_criteria:
+      - pytest-cov reporta ≥80% cobertura en módulos de negocio
+      - Swagger UI funcional en /docs
+      - Load test: P95 ≤500ms con 50 usuarios concurrentes
+      - README incluye: setup, variables de entorno, comandos de deploy
+    test_plan:
+      - Correr `pytest --cov=app --cov-report=html`
+      - Verificar /docs accesible y schemas correctos
+      - Locust/k6: 50 VUs × 60s en endpoints críticos
+    context_refs:
+      - "construction/backend-api-unidad 1/build-and-test/build-instructions.md"
+      - "construction/backend-api-unidad 1/build-and-test/unit-test-instructions.md"
+      - "construction/backend-api-unidad 1/build-and-test/integration-test-instructions.md"
+
+  - id: CC-06
+    title: "Deployment Backend en AWS Lambda + RDS"
+    unit: "backend-api-unidad-1"
+    milestone: M1
+    priority: high
+    estimate: "2d"
+    dependencies: [CC-05]
+    labels: [backend, deployment, aws, infrastructure]
+    definition: |
+      Buildear imagen Docker multi-stage, deployar en AWS Lambda con Mangum,
+      conectar a RDS PostgreSQL y ejecutar smoke tests en staging.
+    acceptance_criteria:
+      - Docker image < 500MB buildea sin errores
+      - Lambda responde en < 3s en cold start
+      - RDS connection estable (pool configurado)
+      - Variables de entorno en AWS Secrets Manager
+      - Smoke tests: /health, /auth/login, /inspections retornan 200
+    test_plan:
+      - `docker build` exitoso
+      - Lambda invoke manual desde consola AWS
+      - Smoke tests automatizados en pipeline post-deploy
+    context_refs:
+      - "construction/backend-api-unidad 1/deployment-architecture.md"
+      - "construction/backend-api-unidad 1/infrastructure-design.md"
+
+  # ─── UNIDAD 2: FRONTEND WEB ──────────────────────────────────────────────
+
+  - id: CC-07
+    title: "Setup y arquitectura Frontend"
+    unit: "frontend-web-unidad-2"
+    milestone: M1
+    priority: urgent
+    estimate: "3d"
+    dependencies: []
+    labels: [frontend, setup, architecture]
+    definition: |
+      Configurar Vite + React 18 + TypeScript, stores Zustand, Tailwind CSS,
+      React Router y cliente HTTP axios con interceptors JWT.
+    acceptance_criteria:
+      - Proyecto compila sin errores TypeScript
+      - Stores Zustand: Auth, Inspection, Approval, Master
+      - Axios interceptor agrega Bearer token automáticamente
+      - React Router con protected routes configurado
+      - Tailwind + design tokens básicos
+    test_plan:
+      - `npm run build` exitoso
+      - Vitest: stores inicializan en estado correcto
+      - Navegación a ruta protegida sin token → redirect a /login
+    context_refs:
+      - "construction/frontend-web unidad 2/frontend-web-implementation-plan.md#Fase1"
+      - "construction/frontend-web unidad 2/frontend-web/nfr-design/ADR-002-state-management-zustand.md"
+      - "construction/frontend-web unidad 2/frontend-web/nfr-design/ADR-001-authentication-jwt-strategy.md"
+
+  - id: CC-08
+    title: "Auth Frontend + Layout principal"
+    unit: "frontend-web-unidad-2"
+    milestone: M1
+    priority: urgent
+    estimate: "3d"
+    dependencies: [CC-07, CC-03]
+    labels: [frontend, auth, layout]
+    definition: |
+      Pantalla de login con manejo de tokens JWT, sidebar de navegación,
+      header con usuario activo y contexto global de usuario.
+    acceptance_criteria:
+      - Login page funcional con validación de campos
+      - Token almacenado en memoria (no localStorage por seguridad)
+      - Sidebar muestra opciones según rol del usuario
+      - Logout limpia estado y redirige a /login
+      - Sesión expira y redirige automáticamente
+    test_plan:
+      - Login con credenciales válidas → dashboard
+      - Login con credenciales inválidas → mensaje de error
+      - Token expirado → redirect automático a /login
+    context_refs:
+      - "construction/frontend-web unidad 2/frontend-web-implementation-plan.md#Fase2"
+      - "construction/frontend-web unidad 2/frontend-web/nfr-design/ADR-001-authentication-jwt-strategy.md"
+
+  - id: CC-09
+    title: "Módulo Inspección UI"
+    unit: "frontend-web-unidad-2"
+    milestone: M1
+    priority: urgent
+    estimate: "6d"
+    dependencies: [CC-08, CC-03]
+    labels: [frontend, inspection, mobile-first]
+    definition: |
+      Formulario de inspección mobile-first: búsqueda de lote, captura de foto,
+      selección de tipo de defecto (25+ opciones), comentario obligatorio ≥10 chars,
+      confirmación de máquina e historial de inspecciones propias.
+    acceptance_criteria:
+      - Búsqueda de lote por código HDR en ≤2s
+      - Captura de foto desde cámara del dispositivo
+      - Dropdown con ≥25 tipos de defecto
+      - Validación: comentario ≥10 caracteres
+      - Máquina pre-rellenada, editable
+      - Historial muestra últimas 50 inspecciones del usuario
+      - Funciona en pantallas de 375px (móvil)
+    test_plan:
+      - Cypress/Playwright: flujo completo de inspección end-to-end
+      - Test validación: submit sin foto → error visible
+      - Test responsive: render correcto en 375px y 1440px
+    context_refs:
+      - "construction/frontend-web unidad 2/frontend-business-logic-model.md"
+      - "construction/frontend-web unidad 2/frontend-business-rules.md"
+      - "inception/requirements-analysis.md#Módulo1"
+
+  - id: CC-10
+    title: "Módulo Aprobación UI"
+    unit: "frontend-web-unidad-2"
+    milestone: M1
+    priority: urgent
+    estimate: "4d"
+    dependencies: [CC-08, CC-03]
+    labels: [frontend, approval]
+    definition: |
+      Vista de pendientes para Jefe QA: lista de inspecciones pendientes,
+      detalle con foto fullscreen, botones Aprobar/Rechazar con notificación
+      al gerente de calidad.
+    acceptance_criteria:
+      - Lista muestra inspecciones pendientes paginadas
+      - Foto abre en modal fullscreen
+      - Aprobar/Rechazar actualiza estado en tiempo real
+      - Notificación enviada al Gerente de Calidad post-aprobación
+      - Solo visible para roles QA y Manager
+    test_plan:
+      - Test RBAC: Analyst no ve menú de Aprobación
+      - Test flujo: aprobar inspección → desaparece de pendientes
+      - Test foto: click → modal fullscreen
+    context_refs:
+      - "construction/frontend-web unidad 2/frontend-web-implementation-plan.md#Fase4"
+      - "inception/requirements-analysis.md#Módulo2"
+
+  - id: CC-11
+    title: "DB + APIs Maestros backend (Unidad 3)"
+    unit: "maestros-unidad-3"
+    milestone: M1
+    priority: high
+    estimate: "10d"
+    dependencies: [CC-01]
+    labels: [backend, masters, database]
+    definition: |
+      Tablas y APIs para los 3 catálogos maestros con seed data inicial,
+      CRUD completo, soft delete, audit logging y validaciones de datos.
+    acceptance_criteria:
+      - Tablas: defects, machines, fabrics, import_logs, change_logs
+      - CRUD endpoints funcionando con paginación
+      - Seed data: 25 tipos de defecto + máquinas iniciales
+      - Soft delete operativo
+      - Audit log en cada operación CRUD
+    test_plan:
+      - Seed data carga sin errores en DB limpia
+      - Test CRUD completo por cada catálogo
+      - Test soft delete no rompe inspecciones existentes
+    context_refs:
+      - "construction/Maestroyconfiguracion-unidad3/maestros-implementation-plan.md"
+      - "construction/Maestroyconfiguracion-unidad3/domain-entities.md"
+      - "construction/Maestroyconfiguracion-unidad3/Business-Rules.md"
+
+  - id: CC-12
+    title: "Bulk Import CSV/Excel (Unidad 3)"
+    unit: "maestros-unidad-3"
+    milestone: M1
+    priority: medium
+    estimate: "5d"
+    dependencies: [CC-11]
+    labels: [backend, import, celery]
+    definition: |
+      Endpoints de importación masiva para los 3 catálogos con validación previa,
+      rollback en error, background jobs Celery para archivos grandes y reporte de resultados.
+    acceptance_criteria:
+      - POST /import/{defects|machines|fabrics} acepta CSV y XLSX
+      - Validación retorna errores por fila antes de insertar
+      - Rollback completo si hay error en cualquier fila
+      - Celery job para archivos >1000 filas
+      - Reporte: N exitosos, M errores con detalle por fila
+    test_plan:
+      - Import CSV válido → todos los registros insertados
+      - Import CSV con 1 fila inválida → rollback total
+      - Import 5000 filas → job asíncrono completado
+    context_refs:
+      - "construction/Maestroyconfiguracion-unidad3/maestros-implementation-plan.md#Fase3"
+
+  - id: CC-13
+    title: "Frontend Maestros UI (Unidad 3)"
+    unit: "maestros-unidad-3"
+    milestone: M1
+    priority: medium
+    estimate: "7d"
+    dependencies: [CC-11, CC-08]
+    labels: [frontend, masters, admin]
+    definition: |
+      UI de administración para gestionar los 3 catálogos: tablas con CRUD,
+      interface de upload/import, progress bar e historial de cambios.
+    acceptance_criteria:
+      - Tablas con búsqueda, ordenamiento y paginación
+      - Crear/Editar en modal, Inactivar con confirmación
+      - Upload de archivo con preview antes de importar
+      - Progress bar para imports grandes
+      - Change history viewer por registro
+      - Solo visible para roles Admin y Manager
+    test_plan:
+      - Crear defecto → aparece en tabla
+      - Inactivar → desaparece de lista activos
+      - Upload CSV → preview muestra datos correctos
+    context_refs:
+      - "construction/Maestroyconfiguracion-unidad3/maestros-implementation-plan.md#Fase4"
+
+  # ─── UNIDAD 2: WAVE 2 ────────────────────────────────────────────────────
+
+  - id: CC-14
+    title: "Módulo Análisis con gráficos"
+    unit: "frontend-web-unidad-2"
+    milestone: M2
+    priority: high
+    estimate: "8d"
+    dependencies: [CC-10]
+    labels: [frontend, analytics, charts]
+    definition: |
+      Dashboard ejecutivo con gráficos de reprocesos por tela/máquina/turno,
+      tendencias temporales y KPIs clave para Gerente y CEO.
+    acceptance_criteria:
+      - Gráfico de barras: top 10 defectos por tipo
+      - Gráfico de línea: tendencia reprocesos últimos 30 días
+      - Mapa de calor: % reprocesos por máquina
+      - KPIs: total reprocesos hoy, % vs ayer, meta -30%
+      - Filtros: fecha, línea, turno
+      - Datos actualizados cada 5 minutos
+    test_plan:
+      - Test gráficos renderizan con datos vacíos sin error
+      - Test filtros actualizan gráficos correctamente
+      - Test performance: dashboard carga en <2s
+    context_refs:
+      - "construction/frontend-web unidad 2/frontend-web-implementation-plan.md#Wave2"
+      - "inception/requirements-analysis.md#Módulo3"
+
+  - id: CC-15
+    title: "Módulo Reportes PDF/Excel"
+    unit: "frontend-web-unidad-2"
+    milestone: M2
+    priority: medium
+    estimate: "5d"
+    dependencies: [CC-14]
+    labels: [frontend, reports, export]
+    definition: |
+      Exportación de reportes de inspecciones y análisis en formato PDF y Excel,
+      con filtros por período, máquina y tipo de defecto.
+    acceptance_criteria:
+      - Exportar lista de inspecciones filtrada a Excel
+      - Exportar reporte ejecutivo a PDF con gráficos
+      - Generación en <10s para períodos de 30 días
+      - PDF incluye logo Manufacturas Eliot y fecha de generación
+    test_plan:
+      - Export Excel: archivo descargado con datos correctos
+      - Export PDF: gráficos renderizados correctamente
+      - Test 1000 registros → export <10s
+    context_refs:
+      - "construction/frontend-web unidad 2/frontend-web-implementation-plan.md#Wave2"
+
+  # ─── UNIDAD 4: OFFLINE SYNC ──────────────────────────────────────────────
+
+  - id: CC-16
+    title: "Service Worker + detección offline"
+    unit: "offline-unidad-4"
+    milestone: M2
+    priority: high
+    estimate: "5d"
+    dependencies: [CC-09]
+    labels: [frontend, offline, service-worker, pwa]
+    definition: |
+      Registrar Service Worker con lifecycle management, detectar eventos online/offline,
+      mostrar indicador visual de conectividad y aplicar cache strategy network-first.
+    acceptance_criteria:
+      - Service Worker registrado y activo en /sw.js
+      - Banner visible cuando no hay red: "Sin conexión"
+      - Banner verde cuando se reconecta: "Conectado — sincronizando..."
+      - Assets estáticos en cache (HTML, CSS, JS)
+      - Network-first para llamadas API
+    test_plan:
+      - Chrome DevTools: offline mode → banner visible
+      - Reconectar → banner desaparece, sync inicia
+      - Reload offline → app carga desde cache
+    context_refs:
+      - "construction/offline-first&synchronization-unidad 4/offline-sync-implementation-plan.md#Fase1"
+      - "construction/frontend-web unidad 2/frontend-web/nfr-design/ADR-003-offline-storage-indexeddb-service-worker.md"
+
+  - id: CC-17
+    title: "IndexedDB setup + integración Zustand"
+    unit: "offline-unidad-4"
+    milestone: M2
+    priority: high
+    estimate: "5d"
+    dependencies: [CC-16]
+    labels: [frontend, offline, indexeddb, storage]
+    definition: |
+      Diseñar esquema IndexedDB (tablas: inspections, approvals, sync_queue),
+      integrar con stores Zustand y manejar versiones/migraciones de BD local.
+    acceptance_criteria:
+      - IndexedDB inicializa en primer load
+      - Tablas: inspections, approvals, sync_queue creadas
+      - Zustand store persiste en IndexedDB automáticamente
+      - Migración de versión funciona sin pérdida de datos
+      - CRUD operations en IndexedDB funcionan
+    test_plan:
+      - Crear inspección offline → aparece en IndexedDB
+      - Reload página → datos persisten
+      - Test migración: v1 → v2 schema sin pérdida
+    context_refs:
+      - "construction/offline-first&synchronization-unidad 4/offline-sync-implementation-plan.md#Fase2"
+      - "construction/offline-first&synchronization-unidad 4/domain-entities.md"
+
+  - id: CC-18
+    title: "Captura offline en módulo Inspección"
+    unit: "offline-unidad-4"
+    milestone: M2
+    priority: high
+    estimate: "5d"
+    dependencies: [CC-17, CC-09]
+    labels: [frontend, offline, inspection]
+    definition: |
+      Modificar el módulo Inspección para guardar en IndexedDB cuando no hay red,
+      mostrar indicador "pendiente de sync" y manejar errores de almacenamiento local.
+    acceptance_criteria:
+      - Inspección creada offline → guardada en IndexedDB con status "pending"
+      - UI muestra badge "Pendiente sync" en inspecciones offline
+      - Error si disco lleno → mensaje claro al usuario
+      - Validación local funciona igual que online
+      - Foto almacenada como Blob en IndexedDB
+    test_plan:
+      - Offline → crear inspección → aparece con badge pending
+      - Disk full simulation → error manejado gracefully
+      - Foto capturada offline → persiste en IndexedDB
+    context_refs:
+      - "construction/offline-first&synchronization-unidad 4/offline-sync-implementation-plan.md#Fase3"
+      - "construction/offline-first&synchronization-unidad 4/Business-Rules.md"
+
+  - id: CC-19
+    title: "Sync Queue + mecanismo automático"
+    unit: "offline-unidad-4"
+    milestone: M2
+    priority: high
+    estimate: "5d"
+    dependencies: [CC-18]
+    labels: [frontend, offline, sync]
+    definition: |
+      Implementar cola de sincronización con timestamp, operación y estado,
+      sincronización automática al reconectar, sync manual (botón) y
+      exponential backoff para reintentos fallidos.
+    acceptance_criteria:
+      - Al reconectar: sync automático inicia en <5s
+      - Botón "Sincronizar ahora" disponible cuando hay pendientes
+      - Exponential backoff: 1s, 2s, 4s, 8s (max 5 intentos)
+      - Estado en UI: "3 inspecciones pendientes de sync"
+      - Sync exitoso → items marcados "synced", salen de queue
+    test_plan:
+      - Reconectar → sync automático en <5s
+      - Forzar fallo servidor → reintentos con backoff
+      - 50 items en queue → todos synced en orden correcto
+    context_refs:
+      - "construction/offline-first&synchronization-unidad 4/offline-sync-implementation-plan.md#Fase4"
+      - "construction/offline-first&synchronization-unidad 4/NFR-Requirements.md"
+
+  - id: CC-20
+    title: "Detección de conflictos en sincronización"
+    unit: "offline-unidad-4"
+    milestone: M2
+    priority: medium
+    estimate: "6d"
+    dependencies: [CC-19]
+    labels: [frontend, offline, conflicts]
+    definition: |
+      Implementar detección de conflictos (last-write-wins básico + comparación de versiones),
+      marcar items conflictuados para revisión manual y detectar conflictos en Aprobaciones.
+    acceptance_criteria:
+      - Last-write-wins aplicado automáticamente en conflictos simples
+      - Conflicto de Aprobación → marcado para revisión manual
+      - UI muestra lista de items conflictuados con opción de resolver
+      - Version field en cada entidad sincronizada
+    test_plan:
+      - Simular edición simultánea → last-write-wins aplicado
+      - Aprobación conflictuada → aparece en lista de conflictos
+      - Resolver conflicto manualmente → item synced
+    context_refs:
+      - "construction/offline-first&synchronization-unidad 4/offline-sync-implementation-plan.md#Fase5"
+      - "construction/offline-first&synchronization-unidad 4/NFR-Design-Consolidated.md"
+
+  # ─── M3: OPTIMIZATION ────────────────────────────────────────────────────
+
+  - id: CC-21
+    title: "UI resolución de conflictos"
+    unit: "offline-unidad-4"
+    milestone: M3
+    priority: medium
+    estimate: "5d"
+    dependencies: [CC-20]
+    labels: [frontend, offline, conflicts, ux]
+    definition: |
+      Pantalla dedicada para que el Jefe QA resuelva conflictos manualmente:
+      comparación lado a lado (versión local vs servidor) con elección.
+    acceptance_criteria:
+      - Vista diff: versión local vs versión servidor
+      - Botones: "Usar local" / "Usar servidor"
+      - Resolución registrada en audit log
+      - Notificación al analista afectado
+    test_plan:
+      - Resolver conflicto local → server version descartada
+      - Resolver conflicto server → local version descartada
+      - Audit log registra quién resolvió y cuándo
+    context_refs:
+      - "construction/offline-first&synchronization-unidad 4/offline-sync-implementation-plan.md#Wave3"
+
+  - id: CC-22
+    title: "Sync bidireccional via WebSocket"
+    unit: "offline-unidad-4"
+    milestone: M3
+    priority: medium
+    estimate: "8d"
+    dependencies: [CC-21]
+    labels: [frontend, backend, websocket, realtime]
+    definition: |
+      Implementar sincronización bidireccional via WebSocket para que cambios del servidor
+      lleguen al cliente en tiempo real (nuevas aprobaciones, actualizaciones de maestros).
+    acceptance_criteria:
+      - WebSocket conecta automáticamente al iniciar sesión
+      - Nueva aprobación en servidor → aparece en cliente <2s
+      - Cambio en maestros → refresh automático
+      - Reconexión automática si WebSocket cae
+      - Funciona con múltiples tabs abiertas
+    test_plan:
+      - Aprobar desde Tab A → Tab B actualiza en <2s
+      - Cerrar WebSocket → reconexión automática en <10s
+      - 20 clientes simultáneos → sin degradación
+    context_refs:
+      - "construction/offline-first&synchronization-unidad 4/offline-sync-implementation-plan.md#Wave3"
+      - "construction/offline-first&synchronization-unidad 4/Infrastructure-Design-Services.md"
+
+  - id: CC-23
+    title: "Batch sync + compresión de datos"
+    unit: "offline-unidad-4"
+    milestone: M3
+    priority: low
+    estimate: "5d"
+    dependencies: [CC-22]
+    labels: [frontend, backend, performance, optimization]
+    definition: |
+      Optimizar sincronización agrupando múltiples operaciones en un solo request
+      y comprimiendo payload para reducir uso de datos en conexiones lentas.
+    acceptance_criteria:
+      - Batch de hasta 50 operaciones en 1 request POST /sync
+      - Compresión gzip en payloads >1KB
+      - Sync de 200 inspecciones offline <30s
+      - Historial de sincronización visible al usuario
+    test_plan:
+      - 200 items offline → sync en <30s
+      - Payload comprimido <50% del original
+      - Historial muestra últimas 20 sincronizaciones
+    context_refs:
+      - "construction/offline-first&synchronization-unidad 4/offline-sync-implementation-plan.md#Wave3"
+      - "construction/offline-first&synchronization-unidad 4/NFR-Requirements.md"
+
+  - id: CC-24
+    title: "E2E testing + performance final"
+    unit: "transversal"
+    milestone: M3
+    priority: high
+    estimate: "5d"
+    dependencies: [CC-23]
+    labels: [testing, e2e, performance]
+    definition: |
+      Suite completa de tests E2E cubriendo flujos críticos (Analista → Jefe QA → Gerente)
+      y pruebas de rendimiento con 20+ usuarios concurrentes.
+    acceptance_criteria:
+      - E2E: flujo inspección completo (captura → aprobación → dashboard)
+      - E2E: flujo offline (captura sin red → sync → aprobación)
+      - Load test: 20 analistas simultáneos, P95 ≤2s
+      - 0 errores críticos en suite E2E
+    test_plan:
+      - Playwright: 10 scenarios E2E críticos
+      - k6: 20 VUs × 5min en endpoints core
+      - Reporte de cobertura E2E publicado
+    context_refs:
+      - "construction/frontend-web unidad 2/activity-6-testing-design/Testing-Strategy-Design.md"
+      - "construction/backend-api-unidad 1/build-and-test/build-and-test-summary.md"
+
+  - id: CC-25
+    title: "Go-live + monitoreo en producción"
+    unit: "transversal"
+    milestone: M3
+    priority: urgent
+    estimate: "3d"
+    dependencies: [CC-24]
+    labels: [deployment, production, monitoring]
+    definition: |
+      Deploy final a producción AWS, configurar alertas de monitoreo, capacitación
+      a 20 analistas y seguimiento de adopción semana 1.
+    acceptance_criteria:
+      - Sistema disponible en URL de producción
+      - CloudWatch alertas: error rate >5%, latencia P95 >2s
+      - 20 analistas capacitados (sesión hands-on 1h)
+      - Adopción día 1: ≥50% analistas con al menos 1 inspección
+      - Runbook de incidentes documentado
+    test_plan:
+      - Smoke tests en producción post-deploy
+      - Alerta disparada manualmente → notificación recibida
+      - Métricas de adopción visibles en dashboard
+    context_refs:
+      - "construction/backend-api-unidad 1/deployment-architecture.md"
+      - "construction/frontend-web unidad 2/activity-4-infrastructure-design/Deployment-Architecture.md"

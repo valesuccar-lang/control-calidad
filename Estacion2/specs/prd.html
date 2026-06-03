@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRD - Sistema de Gestión de Control de Calidad Textil</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 32px;
+            margin-bottom: 10px;
+            text-align: center;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 15px;
+        }
+
+        h2 {
+            color: #2c3e50;
+            font-size: 22px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
+            padding-left: 10px;
+        }
+
+        h3 {
+            color: #34495e;
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .metadata {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #ecf0f1;
+            border-radius: 5px;
+        }
+
+        .toc {
+            background: #f9f9f9;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+
+        .toc h3 {
+            margin-top: 0;
+        }
+
+        .toc ol {
+            margin-left: 20px;
+        }
+
+        .toc li {
+            margin: 8px 0;
+            color: #555;
+        }
+
+        p {
+            margin-bottom: 12px;
+            text-align: justify;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 13px;
+        }
+
+        th {
+            background: #3498db;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+            border: 1px solid #2980b9;
+        }
+
+        td {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        tr:hover {
+            background: #ecf0f1;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+
+        .success {
+            background: #d4edda;
+            padding: 15px;
+            border-left: 4px solid #28a745;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+
+        .danger {
+            background: #f8d7da;
+            padding: 15px;
+            border-left: 4px solid #dc3545;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+
+        .info {
+            background: #d1ecf1;
+            padding: 15px;
+            border-left: 4px solid #17a2b8;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+        }
+
+        pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+            border-left: 4px solid #777;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: #333;
+        }
+
+        .section-break {
+            page-break-after: always;
+            margin: 40px 0;
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+        }
+
+        .metric {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .metric-item {
+            background: #f0f8ff;
+            padding: 12px;
+            border-radius: 5px;
+            border-left: 3px solid #3498db;
+        }
+
+        .metric-label {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 12px;
+        }
+
+        .metric-value {
+            color: #27ae60;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        ul, ol {
+            margin: 15px 0 15px 30px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        .author-footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .container {
+                box-shadow: none;
+                max-width: 100%;
+                padding: 20px;
+            }
+            .no-print {
+                display: none;
+            }
+            h2 {
+                page-break-after: avoid;
+            }
+            table {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SISTEMA DE GESTIÓN DE CONTROL DE CALIDAD TEXTIL</h1>
+        <div class="metadata">
+            <p><strong>PRD v1.0</strong> | 26 de Mayo de 2026</p>
+            <p>Manufacturas Eliot — Bogotá, Colombia</p>
+            <p>Planta: 1,000 operarios | Analistas: 20 | ERP: ACATEX</p>
+        </div>
+
+        <div class="toc">
+            <h3>📋 Tabla de Contenidos</h3>
+            <ol>
+                <li>One-Liner + Job to be Done + Misión</li>
+                <li>Contexto y Problema</li>
+                <li>ICP Detallado</li>
+                <li>Propuesta de Valor Única + Diferenciadores</li>
+                <li>Top 5 Casos de Uso</li>
+                <li>Principios de Diseño No Negociables</li>
+                <li>User Journeys</li>
+                <li>MVP Scope (MoSCoW)</li>
+                <li>Especificación Funcional: Módulos</li>
+                <li>Métricas de Éxito</li>
+                <li>Plan de Evaluación del Sistema</li>
+                <li>Riesgos y Mitigaciones</li>
+                <li>Plan de Entrega 30/60/90 Días</li>
+            </ol>
+        </div>
+
+        <div class="section-break">---</div>
+
+        <h2>📌 RESUMEN EJECUTIVO</h2>
+
+        <h3>Problema Cuantificado</h3>
+        <p><strong>267,119 reprocesos en abril 2026</strong> (~8,700-10,482 toneladas/día) generando pérdida estimada de <strong>$500K-1.3M USD mensuales</strong>.</p>
+
+        <div class="highlight">
+            <strong>Defectos principales:</strong><br>
+            • TONODIFFERENTE: 29-40% de todos los defectos<br>
+            • MANCHAS: 13%<br>
+            • MAREO: 10%<br>
+            • Tela crítica: NOVAKREPEL (27.13% de reprocesos)
+        </div>
+
+        <h3>Solución</h3>
+        <p>Sistema móvil offline-first que captura <strong>foto + tipo de defecto + comentario + timestamp automático</strong>, organiza por lote, identifica máquina culpable y proporciona dashboards en tiempo real para análisis instantáneo.</p>
+
+        <h3>North Star Metric</h3>
+        <p class="info">
+            <strong>Reducción de reprocesos: -30% en 90 días</strong><br>
+            Baseline: 267,119/mes → Meta: 187,183/mes<br>
+            Ahorro: ~$150K-400K USD/mes
+        </p>
+
+        <h3>Timeline</h3>
+        <ul>
+            <li><strong>Días 1-30:</strong> MVP Construction (10 must-have features)</li>
+            <li><strong>Días 31-60:</strong> Testing + Piloto (5-10 analistas)</li>
+            <li><strong>Días 61-90:</strong> Go-Live + Medición (-30% target)</li>
+        </ul>
+
+        <div class="section-break">---</div>
+
+        <h2>🎯 Propuesta de Valor</h2>
+
+        <p><strong>"La única solución que convierte cada inspección de tela en un registro fotográfico sistematizado, en tiempo real, integrando ACATEX para análisis instantáneo por tela, máquina y turno — sin reemplazar Excel, sin meses de implementación."</strong></p>
+
+        <h3>Diferenciadores Clave</h3>
+
+        <table>
+            <tr>
+                <th>Aspecto</th>
+                <th>Genéricos (Inspectlet)</th>
+                <th>Nuestro Producto</th>
+            </tr>
+            <tr>
+                <td>Defectos</td>
+                <td>5-10 genéricos</td>
+                <td>25+ defectos textiles específicos</td>
+            </tr>
+            <tr>
+                <td>Implementación</td>
+                <td>3-6 meses</td>
+                <td>2-4 semanas</td>
+            </tr>
+            <tr>
+                <td>Costo</td>
+                <td>$100K-300K USD</td>
+                <td>$15K-30K USD</td>
+            </tr>
+            <tr>
+                <td>Captura fotográfica</td>
+                <td>Manual / dispersa</td>
+                <td>Sistematizada en BD central</td>
+            </tr>
+            <tr>
+                <td>Offline-first</td>
+                <td>NO</td>
+                <td>SÍ</td>
+            </tr>
+        </table>
+
+        <div class="section-break">---</div>
+
+        <h2>👥 Buyer Personas</h2>
+
+        <h3>1. Jefe de Calidad (Sponsor)</h3>
+        <p><strong>Presión actual:</strong> CEO exige -30% reprocesos en 90 días<br>
+        <strong>Goal con sistema:</strong> Dashboard ejecutivo que muestre patrones por tela en tiempo real<br>
+        <strong>Power:</strong> Aprueba inversión hasta $50K USD</p>
+
+        <h3>2. Analista de Calidad (Power User)</h3>
+        <p><strong>Presión actual:</strong> Proceso manual lento; NO toma fotos sistemáticamente<br>
+        <strong>Goal:</strong> Capturar foto + comentario directo, sin Excel<br>
+        <strong>Crítico para:</strong> Adopción (si no lo usa, sistema falla)</p>
+
+        <h3>3. Jefe de Procesos (Data-Driven)</h3>
+        <p><strong>Presión actual:</strong> Toma decisiones SIN data de máquinas<br>
+        <strong>Goal:</strong> Análisis en línea por tela, máquina, turno<br>
+        <strong>Poder:</strong> Puede bloquear si interfiere con producción</p>
+
+        <h3>4. Gerente de Planta (Executive Sponsor)</h3>
+        <p><strong>Presión actual:</strong> CEO exige bajar reprocesos; 267K/mes = costo insostenible<br>
+        <strong>Goal:</strong> Dashboard ejecutivo mostrando reprocesos POR TELA<br>
+        <strong>Poder:</strong> Aprueba presupuesto $50K-150K USD</p>
+
+        <div class="section-break">---</div>
+
+        <h2>🏗️ Arquitectura Funcional</h2>
+
+        <p>Sistema <strong>agnóstico de ERP + independiente</strong>:</p>
+        <ul>
+            <li><strong>Maestros Locales:</strong> Defectos, Telas, Máquinas, Operarios (CRUD completo en sistema local)</li>
+            <li><strong>Sincronización Opcional:</strong> ACATEX (si empresa lo requiere) o sin ERP</li>
+            <li><strong>7 Módulos:</strong> Inspección, Aprobación, Análisis, Maestros, Sincronización, Configuración, Auditoría (opcional)</li>
+        </ul>
+
+        <div class="info">
+            <strong>Pregunta de Setup Inicial:</strong><br>
+            "¿Tu planta tiene ERP?"<br>
+            ☐ NO → Sistema funciona completamente con maestros locales<br>
+            ☑ SÍ → Sincroniza con ACATEX (opcional)
+        </div>
+
+        <h3>10 Principios de Diseño No Negociables</h3>
+
+        <ol>
+            <li><strong>Foto + Tipo Defecto + Comentario = Registro Válido</strong> — Ninguno de los tres es opcional</li>
+            <li><strong>Trazabilidad Completa de Lote</strong> — HDR, máquinas, defectos, culpabilidad, acciones</li>
+            <li><strong>Check-in/Check-out Automático</strong> — Timestamp sistemático, cero manual</li>
+            <li><strong>ACATEX provee Códigos + Nombres</strong> — Maestros locales SÍ; maestro de defectos es local</li>
+            <li><strong>ERP-Agnóstico</strong> — Funciona sin ERP; integración es OPCIONAL</li>
+            <li><strong>Especialización Textil</strong> — 25+ defectos, máquinas, procesos textiles (no genérico)</li>
+            <li><strong>Máquina Culpable = Sugerencia Inteligente</strong> — Decisión siempre es humana</li>
+            <li><strong>Auditoría = OPCIONAL</strong> — Configurable por empresa</li>
+            <li><strong>Maestro de Defectos Centralizado</strong> — Dropdown, no texto libre</li>
+            <li><strong>Offline-First, Sincronización Garantizada</strong> — Cero pérdida, sin wifi</li>
+        </ol>
+
+        <div class="section-break">---</div>
+
+        <h2>📊 Scope (MoSCoW)</h2>
+
+        <h3>Must Have (10 features) — v1</h3>
+        <ul>
+            <li>Captura foto desde celular</li>
+            <li>Maestro de defectos (25+ defectos)</li>
+            <li>Comentario obligatorio (≥10 caracteres)</li>
+            <li>Integración ACATEX: maestros básicos</li>
+            <li>Máquina culpable estimada + confirmación</li>
+            <li>Check-in/check-out automático</li>
+            <li>Offline-first + sincronización auto</li>
+            <li>Dashboard Jefe de Calidad (básico)</li>
+            <li>Notificación a Gerente</li>
+            <li>Trail básico</li>
+        </ul>
+        <p><strong>Timeline MVP:</strong> 30 días | <strong>Go-live:</strong> 90 días ✓</p>
+
+        <h3>Should Have (7 features) — v1+</h3>
+        <ul>
+            <li>Análisis por máquina</li>
+            <li>Análisis por defecto</li>
+            <li>Dashboard Gerente (3 KPIs)</li>
+            <li>Exportar reportes (PDF/Excel)</li>
+            <li>Auditoría completa (opcional)</li>
+            <li>Dashboard Jefe Procesos</li>
+            <li>Integración MES (OPCIONAL)</li>
+        </ul>
+
+        <h3>Won't Have (Fuera MVP)</h3>
+        <ul>
+            <li>Extensión a otras plantas</li>
+            <li>Detección automática defectos (IA visión)</li>
+            <li>Gestión de proveedores</li>
+            <li>Integración Salesforce/CRM</li>
+            <li>APIs abiertas para clientes</li>
+            <li>Gestión de turnos</li>
+        </ul>
+
+        <div class="section-break">---</div>
+
+        <h2>🎯 Métricas de Éxito</h2>
+
+        <h3>North Star: Reducción de Reprocesos</h3>
+        <table>
+            <tr>
+                <th>Métrica</th>
+                <th>Baseline</th>
+                <th>Meta 90d</th>
+            </tr>
+            <tr>
+                <td>% Reducción reprocesos</td>
+                <td>267,119/mes</td>
+                <td>187,183/mes (-30%)</td>
+            </tr>
+            <tr>
+                <td>Impacto financiero</td>
+                <td>$500K-1.3M USD/mes</td>
+                <td>Ahorro: $150K-400K USD/mes</td>
+            </tr>
+        </table>
+
+        <h3>KPIs Secundarios (90 días)</h3>
+
+        <table>
+            <tr>
+                <th>Categoría</th>
+                <th>KPI</th>
+                <th>Meta</th>
+            </tr>
+            <tr>
+                <td>Activación</td>
+                <td>% lotes con foto</td>
+                <td>95%</td>
+            </tr>
+            <tr>
+                <td>Activación</td>
+                <td>% analistas activos</td>
+                <td>90% (18/20)</td>
+            </tr>
+            <tr>
+                <td>Calidad</td>
+                <td>% precisión máquina culpable</td>
+                <td>85%+</td>
+            </tr>
+            <tr>
+                <td>Retención</td>
+                <td>% retención semanal</td>
+                <td>≥80%</td>
+            </tr>
+            <tr>
+                <td>Técnico</td>
+                <td>Uptime</td>
+                <td>≥99%</td>
+            </tr>
+            <tr>
+                <td>Técnico</td>
+                <td>Tasa sincronización exitosa</td>
+                <td>99%+</td>
+            </tr>
+        </table>
+
+        <h3>Criterios de Éxito</h3>
+        <div class="success">
+            <strong>✅ ÉXITO (Go a escalamiento post-90d):</strong><br>
+            • North Star: -30%+ en reprocesos<br>
+            • Adopción: ≥90% analistas<br>
+            • Calidad: ≥85% precisión máquina<br>
+            • Uptime: ≥99%<br>
+            • Retención: ≥80% semana 12
+        </div>
+
+        <div class="danger">
+            <strong>❌ FRACASO (Parar y replantear):</strong><br>
+            • North Star: &lt;-15%<br>
+            • Adopción: &lt;70%<br>
+            • Calidad: &lt;70%<br>
+            • Uptime: &lt;95%<br>
+            • Retención: &lt;60%
+        </div>
+
+        <div class="section-break">---</div>
+
+        <h2>📅 Timeline 30/60/90 Días</h2>
+
+        <h3>Fase 1 (Días 1-30): CONSTRUCCIÓN MVP</h3>
+        <ul>
+            <li><strong>Semana 1:</strong> Setup infra + módulo maestros</li>
+            <li><strong>Semana 2:</strong> Módulo inspección + app móvil</li>
+            <li><strong>Semana 3:</strong> Módulo aprobación + sincronización</li>
+            <li><strong>Semana 4:</strong> Dashboard análisis + ACATEX (opcional)</li>
+        </ul>
+        <p class="success"><strong>Deliverable:</strong> MVP 100% funcional, standalone, sin ERP</p>
+
+        <h3>Fase 2 (Días 31-60): TESTING + ADOPCIÓN</h3>
+        <ul>
+            <li><strong>Semana 5:</strong> QA Testing + change management</li>
+            <li><strong>Semana 6:</strong> Piloto 5 analistas (50+ lotes)</li>
+            <li><strong>Semana 7:</strong> Expansión piloto → 10 analistas</li>
+            <li><strong>Semana 8:</strong> Preparación go-live</li>
+        </ul>
+        <p class="success"><strong>Deliverable:</strong> Sistema testeado, adoptado, listo para producción</p>
+
+        <h3>Fase 3 (Días 61-90): GO-LIVE + MEDICIÓN</h3>
+        <ul>
+            <li><strong>Semana 9:</strong> GO-LIVE (20 analistas)</li>
+            <li><strong>Semana 10:</strong> Impacto inicial (-% reprocesos visible)</li>
+            <li><strong>Semana 11:</strong> Iteración basada en feedback</li>
+            <li><strong>Semana 12:</strong> Medición final (-30% target) + roadmap v2</li>
+        </ul>
+        <p class="success"><strong>Deliverable:</strong> Éxito medido. Roadmap v2 definido.</p>
+
+        <h3>Hitos Críticos</h3>
+        <table>
+            <tr>
+                <th>Checkpoint</th>
+                <th>Día</th>
+                <th>Go/No-Go</th>
+            </tr>
+            <tr>
+                <td>MVP Funcional</td>
+                <td>30</td>
+                <td>10/10 features, 0 críticos</td>
+            </tr>
+            <tr>
+                <td>Piloto Validado</td>
+                <td>44</td>
+                <td>5 analistas, ≥85% precisión</td>
+            </tr>
+            <tr>
+                <td>Listo Go-Live</td>
+                <td>60</td>
+                <td>18/20 entrenados</td>
+            </tr>
+            <tr>
+                <td>Go-Live Exitoso</td>
+                <td>67</td>
+                <td>0 crashes, &lt;5 bugs</td>
+            </tr>
+            <tr>
+                <td>Objetivo 90d</td>
+                <td>90</td>
+                <td>-30%, 95% adopción</td>
+            </tr>
+        </table>
+
+        <div class="section-break">---</div>
+
+        <h2>🚨 Top Riesgos + Mitigaciones</h2>
+
+        <table>
+            <tr>
+                <th>Riesgo</th>
+                <th>Probabilidad</th>
+                <th>Impacto</th>
+                <th>Mitigación</th>
+            </tr>
+            <tr>
+                <td>Analistas resisten cambio</td>
+                <td>MEDIA (50%)</td>
+                <td>ALTO</td>
+                <td>Change management, early adopters, training práctico</td>
+            </tr>
+            <tr>
+                <td>Pérdida datos offline</td>
+                <td>MEDIA (40%)</td>
+                <td>ALTO</td>
+                <td>Arquitectura offline-first robusta, testing 100+ casos</td>
+            </tr>
+            <tr>
+                <td>Integración ACATEX toma más tiempo</td>
+                <td>MEDIA (45%)</td>
+                <td>ALTO</td>
+                <td>MVP agnóstico de ERP, integración OPCIONAL</td>
+            </tr>
+            <tr>
+                <td>Scope creep (CEO pide features)</td>
+                <td>ALTA (70%)</td>
+                <td>ALTO</td>
+                <td>Acta de entendimiento Semana 0, "puerta de cambios"</td>
+            </tr>
+            <tr>
+                <td>No se alcanza -30% (solo -15%)</td>
+                <td>MEDIA (40%)</td>
+                <td>ALTO</td>
+                <td>Quick wins Semana 4-6, ataque causa raíz clara</td>
+            </tr>
+            <tr>
+                <td>Defecto NO en maestro</td>
+                <td>ALTA (65%)</td>
+                <td>MEDIO</td>
+                <td>Workflow defecto nuevo, maestro inicial robusto</td>
+            </tr>
+        </table>
+
+        <div class="section-break">---</div>
+
+        <h2>📝 Próximos Pasos</h2>
+
+        <div class="highlight">
+            <strong>Semana 0 Kickoff:</strong><br>
+            1. Reunión con CEO, Gerente, Jefe QA, Dev Lead<br>
+            2. Confirmación APIs ACATEX<br>
+            3. Acta de entendimiento scope<br>
+            4. Inicio Semana 1 — Construcción MVP
+        </div>
+
+        <div class="section-break">---</div>
+
+        <div class="author-footer">
+            <p><strong>PRD v1.0 — Completado</strong></p>
+            <p>Fecha: 26 de Mayo de 2026</p>
+            <p>Estado: Listo para Implementación</p>
+            <p>Preparado por: Head of Product + AI/Agent Architect</p>
+            <hr style="margin: 15px 0;">
+            <p>Para imprimir a PDF: Ctrl+P → Guardar como PDF</p>
+        </div>
+
+    </div>
+</body>
+</html>

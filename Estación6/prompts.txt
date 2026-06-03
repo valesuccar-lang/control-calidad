@@ -1,0 +1,21 @@
+Prompt: create-slide-deck repo-level skill
+
+Create a repo-level agent skill named create-slide-deck
+
+The skill should help future agents create editable HTML slide decks for any kind of presentation. The core idea is to generate a static HTML deck where each slide is directly editable in the browser with contenteditable, so the user can click into the slide and type edits, then save the edited page using the browser's native File -> Save Page As -> Webpage, Complete flow.
+
+Use the skill-creator workflow if available.
+
+The skill should include:
+1. A concise SKILL.md explaining when to use the skill and the workflow for creating, editing, saving, and rendering editable decks.
+2. A reusable HTML template in assets/ with:
+   - fixed 16:9 slides
+   - each slide as section.slide contenteditable=true
+   - an edit note or toolbar outside the deck marked contenteditable=false
+   - no custom save button
+   - instructions in the page to save with File -> Save Page As -> Webpage, Complete
+   - print CSS with @page, one slide per page, hidden edit controls, and background graphics preserved
+3. A render script in scripts/ that uses Playwright/Chromium to render an HTML deck to PDF, with optional per-slide screenshots and basic overflow inspection.
+4. A reference file documenting the editable-web-page mechanics: contenteditable slides, browser-native save, relative asset paths, print CSS, PDF rendering, and QA checks.
+
+Make the skill general-purpose and concise. After creating it, validate the skill and test the render script against the bundled template.

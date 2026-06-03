@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-label="Escenario técnico oscuro con líneas de ejecución y luz lima">
+  <defs>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0A0A0A"/>
+      <stop offset="0.62" stop-color="#111409"/>
+      <stop offset="1" stop-color="#050505"/>
+    </linearGradient>
+    <linearGradient id="limeBeam" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#C8E600" stop-opacity="0"/>
+      <stop offset="0.44" stop-color="#C8E600" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#C8E600" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="orangeBeam" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF8C00" stop-opacity="0"/>
+      <stop offset="0.58" stop-color="#FF8C00" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#FF8C00" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="9" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <pattern id="grid" width="64" height="64" patternUnits="userSpaceOnUse">
+      <path d="M64 0H0V64" fill="none" stroke="#2A2A2A" stroke-width="1" opacity="0.52"/>
+    </pattern>
+    <pattern id="fine" width="16" height="16" patternUnits="userSpaceOnUse">
+      <path d="M16 0H0V16" fill="none" stroke="#1A1A1A" stroke-width="1" opacity="0.6"/>
+    </pattern>
+  </defs>
+
+  <rect width="1280" height="720" fill="url(#floor)"/>
+  <rect width="1280" height="720" fill="url(#fine)" opacity="0.35"/>
+  <rect width="1280" height="720" fill="url(#grid)" opacity="0.42"/>
+
+  <path d="M0 515 L1280 392 L1280 720 L0 720 Z" fill="#080808" opacity="0.9"/>
+  <path d="M96 720 L492 382 M248 720 L596 356 M438 720 L742 330 M650 720 L858 316 M870 720 L1002 308 M1088 720 L1138 306" stroke="#2A2A2A" stroke-width="2" opacity="0.65"/>
+  <path d="M0 620 H1280 M0 580 H1280 M0 540 H1280 M0 502 H1280 M0 466 H1280 M0 432 H1280" stroke="#1F2A05" stroke-width="1.2" opacity="0.62"/>
+
+  <g opacity="0.7">
+    <rect x="718" y="115" width="384" height="210" rx="8" fill="#151515" stroke="#2A2A2A" stroke-width="2"/>
+    <rect x="744" y="143" width="140" height="12" fill="#C8E600" opacity="0.72"/>
+    <rect x="744" y="176" width="302" height="9" fill="#E6E6E6" opacity="0.38"/>
+    <rect x="744" y="205" width="244" height="9" fill="#E6E6E6" opacity="0.22"/>
+    <rect x="744" y="234" width="326" height="9" fill="#E6E6E6" opacity="0.30"/>
+    <rect x="744" y="263" width="198" height="9" fill="#FF8C00" opacity="0.45"/>
+  </g>
+
+  <g filter="url(#softGlow)" opacity="0.85">
+    <path d="M112 184 C270 116 450 118 612 200 S908 332 1168 248" fill="none" stroke="url(#limeBeam)" stroke-width="6"/>
+    <path d="M146 432 C362 320 620 342 808 456 S1046 604 1210 492" fill="none" stroke="url(#orangeBeam)" stroke-width="5"/>
+  </g>
+
+  <g stroke="#C8E600" stroke-width="2" fill="none" opacity="0.62">
+    <path d="M162 262 H318 L368 312 H520"/>
+    <path d="M466 132 H564 L618 188 H696"/>
+    <path d="M736 392 H858 L916 448 H1068"/>
+    <circle cx="162" cy="262" r="5" fill="#C8E600"/>
+    <circle cx="520" cy="312" r="5" fill="#C8E600"/>
+    <circle cx="696" cy="188" r="5" fill="#C8E600"/>
+    <circle cx="1068" cy="448" r="5" fill="#C8E600"/>
+  </g>
+
+  <rect width="1280" height="720" fill="#000" opacity="0.18"/>
+</svg>
