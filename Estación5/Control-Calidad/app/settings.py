@@ -51,7 +51,7 @@ class ApplicationSettings:
             )
 
         # Add file handler (JSON) — skip in test environments where /var/log may be read-only
-        if not self.config.is_testing:
+        if not self.config.is_test:
             try:
                 Path(log_file).parent.mkdir(parents=True, exist_ok=True)
                 logger.add(
