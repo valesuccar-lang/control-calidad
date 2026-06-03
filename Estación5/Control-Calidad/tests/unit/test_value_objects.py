@@ -19,8 +19,8 @@ def test_email_vo_invalid():
 
 
 def test_phone_vo_valid():
-    p = PhoneVO("+5712345678901")
-    assert str(p) == "+5712345678901"
+    p = PhoneVO("+5731234567890")  # +57 + 10 digits
+    assert str(p) == "+5731234567890"
 
 
 def test_phone_vo_invalid():
