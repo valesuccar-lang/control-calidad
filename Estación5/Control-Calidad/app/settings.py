@@ -35,7 +35,7 @@ class ApplicationSettings:
         logger.remove()
 
         # Add console handler with format based on environment
-        if self.config.is_production:
+        if self.config.is_production:  # pragma: no cover
             logger.add(
                 lambda msg: print(msg, end=""),
                 format="{message}",
@@ -51,7 +51,7 @@ class ApplicationSettings:
             )
 
         # Add file handler (JSON) — skip in test environments where /var/log may be read-only
-        if not self.config.is_test:
+        if not self.config.is_test:  # pragma: no cover
             try:
                 Path(log_file).parent.mkdir(parents=True, exist_ok=True)
                 logger.add(
@@ -116,7 +116,7 @@ class ApplicationSettings:
         max_size = self.config.photo_storage.max_size_kb
 
         # Create storage directory if not exists (skip in test env)
-        if not self.config.is_test:
+        if not self.config.is_test:  # pragma: no cover
             try:
                 Path(base_path).mkdir(parents=True, exist_ok=True)
             except (PermissionError, OSError):

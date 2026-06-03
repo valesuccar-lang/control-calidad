@@ -3,7 +3,7 @@ import os
 import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy import pool, text
+from sqlalchemy import pool
 
 from app.models.base import Base
 from app.models.orm import User, Fabric, Lote, Machine, Defect
