@@ -3,9 +3,10 @@ import os
 import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy import pool
+from sqlalchemy import pool, text
 
 from app.models.base import Base
+from app.models.orm import User, Fabric, Lote, Machine, Defect
 
 _DATABASE_URL = os.environ.get("DATABASE_URL", "")
 _USE_POSTGRES = _DATABASE_URL.startswith("postgresql+asyncpg://")
@@ -39,8 +40,25 @@ async def test_db():
 
 @pytest_asyncio.fixture
 async def db_session(test_db):
-    """Get test database session"""
+    """Get test database session with required FK prerequisites seeded."""
     async with test_db() as session:
+        # Seed master data required by FK constraints
+        session.add(Fabric(fabric_id="FABRIC_001", name="Cotton"))
+        session.add(Lote(lote_id="HDR-12847", fabric_id="FABRIC_001", quantity=100))
+        session.add(User(
+            id="analista_001", email="analista@test.com", full_name="Test Analista",
+            hashed_password="x", roles=["ANALISTA"]
+        ))
+        session.add(User(
+            id="jefe_qa_001", email="jefe@test.com", full_name="Test Jefe QA",
+            hashed_password="x", roles=["JEFE_QA"]
+        ))
+        session.add(Defect(defect_id="DEFECT_001", name="Tear", category="Physical"))
+        session.add(Machine(machine_id="MACHINE_001", name="Machine 1"))
+        try:
+            await session.commit()
+        except Exception:
+            await session.rollback()
         yield session
 
 
