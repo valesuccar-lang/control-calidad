@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: control_calidad_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-qc_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-qc_password}
+      POSTGRES_DB: ${POSTGRES_DB:-control_calidad}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-qc_user} -d ${POSTGRES_DB:-control_calidad}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    container_name: control_calidad_api
+    env_file: .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./storage/photos:/storage/photos
+
+volumes:
+  postgres_data:
