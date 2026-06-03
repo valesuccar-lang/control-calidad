@@ -1,0 +1,416 @@
+# C4 Architecture Model — Control de Calidad Textil
+**Date**: 2026-05-27 | **Framework**: C4 Model (Levels 1-2) | **Scope**: MVP 30 días
+
+---
+
+## 📍 NIVEL 1: SYSTEM CONTEXT (Actores + Sistemas Externos)
+
+### System Boundary: "Control de Calidad Sistema"
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      MANUFACTURAS ELIOT                         │
+│                     (Planta Bogotá - 1000 operarios)            │
+│                                                                  │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │      CONTROL DE CALIDAD SISTEMA (QA System)             │  │
+│  │   [Inspección → Aprobación → Análisis de Defectos]      │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│               ↑                    ↑                    ↑        │
+│               │                    │                    │        │
+│   ┌───────────┴──────────┐  ┌──────┴──────┐    ┌───────┴───────┐│
+│   │  Analista de Calidad │  │ Jefe QA    │    │   Gerente     ││
+│   │   (20 usuarios)      │  │ (1 usuario)│    │  (1 usuario)  ││
+│   │                      │  │            │    │               ││
+│   │ • Inspeccionar       │  │ • Revisar  │    │ • Dashboard   ││
+│   │ • Capturar foto      │  │ • Aprobar  │    │ • Reportes    ││
+│   │ • Registrar defecto  │  │ • Rechazar │    │ • Métricas    ││
+│   │ • Trabajo en PISO    │  │ • Análisis │    │ • Decisiones  ││
+│   └───────────┬──────────┘  └──────┬─────┘    └───────┬───────┘│
+│               │                    │                   │         │
+│   ┌───────────┴──────────┐                             │        │
+│   │     Admin / IT       │                             │        │
+│   │   (1-2 usuarios)     │                             │        │
+│   │                      │                             │        │
+│   │ • Maestros (CRUD)    │                             │        │
+│   │ • Usuarios + Roles   │                             │        │
+│   │ • Configuración      │                             │        │
+│   │ • Logs               │                             │        │
+│   └─────────────────────┘                              │        │
+└─────────────────────────────────────────────────────────────────┘
+        ↑                                                  ↑
+        │                                                 │
+        │                                                 │
+        │              Sistemas Externos                 │
+        │                                                 │
+     ┌──┴─────────────┐                        ┌────────┴──────┐
+     │    ACATEX      │                        │  Email Server  │
+     │   (ERP Local)  │                        │  (Sendgrid?)   │
+     │                │                        │                │
+     │ • Maestros:    │                        │ • Notificacio- │
+     │   - Telas      │                        │   nes a Jefe   │
+     │   - Máquinas   │                        │   QA / Gerente │
+     │   - Lotes (HDR)│                        │ • Confirmación │
+     │                │                        │   de setup     │
+     │ • Status       │                        │                │
+     │   updates      │                        │                │
+     │                │                        │                │
+     │ [OPTIONAL]     │                        │ [v1.1]         │
+     └────────────────┘                        └────────────────┘
+```
+
+### Relaciones Clave
+
+| Actor | Sistema QA | Interacción |
+|-------|-----------|-------------|
+| **Analista** | [→] | Abre app → Busca lote → Captura foto → Registra defecto (offline/online) |
+| **Jefe QA** | [←→] | Lee inspecciones pendientes, aprueba/rechaza, ve estadísticas básicas |
+| **Gerente** | [←] | Lee dashboards, métricas, reportes (v1.1: análisis avanzado) |
+| **Admin** | [←→] | Configura maestros, usuarios, roles, sistema |
+| **ACATEX** | [←→] | [OPTIONAL] Recibe: maestros (telas, máquinas, lotes). Envía: status |
+| **Email Server** | [←] | Recibe notificaciones de Sistema QA (v1.1) |
+
+---
+
+## 📦 NIVEL 2: CONTAINERS (Piezas Grandes + Comunicación)
+
+### Container Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         USUARIO (cualquier role)                │
+│                                                                  │
+│  • Navegador Web (Chrome, Safari, Firefox)                      │
+│  • Celular (iOS/Android) — PWA responsive                       │
+│  • Se conecta desde PISO (wifi débil) o OFICINA (wifi fuerte)   │
+└────────────────────────────────┬────────────────────────────────┘
+                                 │
+                                 │ HTTPS
+                                 ↓
+┌─────────────────────────────────────────────────────────────────┐
+│                 CONTAINER 1: FRONTEND WEB (PWA)                 │
+├─────────────────────────────────────────────────────────────────┤
+│  Framework: React 18 + TypeScript                               │
+│  State: Zustand                                                 │
+│  Styling: Tailwind CSS                                          │
+│                                                                  │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │ Páginas:                                                   │ │
+│  │ • InspectionPage (Analista)                               │ │
+│  │ • ApprovalPage (Jefe QA)                                  │ │
+│  │ • DashboardPage (Gerente/Admin)                           │ │
+│  │ • ConfigPage (Admin)                                       │ │
+│  │ • LoginPage (All)                                          │ │
+│  └────────────────────────────────────────────────────────────┘ │
+│                                                                  │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │ Service Worker (PWA + Offline-First)                       │ │
+│  │ • Intercepts network requests                              │ │
+│  │ • Stores offline data in IndexedDB                         │ │
+│  │ • Handles sync queue                                       │ │
+│  │ • Background sync on network restore                       │ │
+│  └────────────────────────────────────────────────────────────┘ │
+│                                                                  │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │ IndexedDB (Local Storage)                                  │ │
+│  │ • Offline inspections                                      │ │
+│  │ • Photos (blob)                                            │ │
+│  │ • Masters cache (defects, machines, fabrics)               │ │
+│  │ • Sync queue                                               │ │
+│  └────────────────────────────────────────────────────────────┘ │
+└────────────────────────────────┬────────────────────────────────┘
+                                 │
+                                 │ REST API / JSON
+                                 │ (HTTPS)
+                                 ↓
+┌─────────────────────────────────────────────────────────────────┐
+│              CONTAINER 2: BACKEND API (FastAPI)                 │
+├─────────────────────────────────────────────────────────────────┤
+│  Framework: Python 3.10+ FastAPI                                │
+│  Architecture: DDD (3 Bounded Contexts)                         │
+│                                                                  │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │ API Routes:                                                │ │
+│  │ • POST /inspections (crear inspección)                    │ │
+│  │ • GET /inspections/pending-approval (listar pendientes)   │ │
+│  │ • POST /approvals (aprobar/rechazar)                      │ │
+│  │ • GET/POST /masters/defects, /machines, /fabrics (CRUD)   │ │
+│  │ • POST /auth/login, /logout                               │ │
+│  │ • POST /sync/upload-pending (offline sync)                │ │
+│  │ • GET /config/status, POST /config/setup                  │ │
+│  └────────────────────────────────────────────────────────────┘ │
+│                                                                  │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │ Business Logic (Domain Services):                          │ │
+│  │ • InspectionService                                        │ │
+│  │ • ApprovalService                                          │ │
+│  │ • MastersService                                           │ │
+│  │ • SyncService                                              │ │
+│  └────────────────────────────────────────────────────────────┘ │
+│                                                                  │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │ Middleware:                                                │ │
+│  │ • JWT Authentication                                       │ │
+│  │ • RBAC (Role-Based Access Control)                         │ │
+│  │ • CORS                                                     │ │
+│  │ • Logging                                                  │ │
+│  │ • Error Handling                                           │ │
+│  └────────────────────────────────────────────────────────────┘ │
+└────────────────────────────────┬────────────────────────────────┘
+                                 │
+                                 │ SQL / TCP
+                                 ↓
+┌─────────────────────────────────────────────────────────────────┐
+│            CONTAINER 3: DATABASE (PostgreSQL)                   │
+├─────────────────────────────────────────────────────────────────┤
+│  Type: Relational (SQL)                                         │
+│  Location: On-Premise (Eliot datacenter)                        │
+│                                                                  │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │ Tables:                                                    │ │
+│  │ • users (Analistas, Jefe QA, Gerente, Admin)              │ │
+│  │ • inspections (Registros de defectos)                      │ │
+│  │ • approvals (Decisiones de Jefe QA)                        │ │
+│  │ • defects (Maestro: TONODIFFERENTE, MANCHAS, etc.)        │ │
+│  │ • machines (Maestro: AGOTAMIENTO 80, RAMAS 19, etc.)       │ │
+│  │ • fabrics (Maestro: NOVAKREPEL, AMORELA, etc.)             │ │
+│  │ • lotes (HDR: número lote, tela, cantidad)                 │ │
+│  │ • photos (Almacenamiento de fotos)                         │ │
+│  │ • config (Configuración del sistema)                       │ │
+│  │ • audit_logs (Trail si auditoría habilitada)               │ │
+│  └────────────────────────────────────────────────────────────┘ │
+│                                                                  │
+│  Performance:                                                   │
+│  • Indexed on: lote_id, analista_id, inspection_id, status     │ │
+│  • Capacity: 100K+ registros (30 días = ~300K inspecciones)    │ │
+│  • Backup: Nightly (handled by Eliot IT)                       │ │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Container: Storage (Foto Files)
+
+**Frontend (IndexedDB)**:
+- Foto original (JPEG, comprimida 80% max 500KB)
+- Almacenado localmente en celular/navegador
+- Para inspecciones offline
+
+**Backend (Filesystem o S3 - v1.1)**:
+- Fotos sincronizadas guardadas en:
+  - Opción A: Filesystem local (`/var/data/photos/`)
+  - Opción B: AWS S3 o Google Cloud Storage (v1.1)
+- Naming: `{inspection_id}_{timestamp}.jpg`
+
+---
+
+## 🔄 COMMUNICATION FLOWS
+
+### Flow 1: Analista Inspecciona (Online)
+
+```
+Analista         Frontend (PWA)         Backend API         Database
+   │                  │                     │                  │
+   │──Buscar HDR─────→│                     │                  │
+   │                  │──GET /lotes/{id}───→│                  │
+   │                  │                     │──Query────────→  │
+   │                  │←──Lote data────────│←──Resultado───── │
+   │←─Show lote───────│                     │                  │
+   │                  │                     │                  │
+   │──Capturar foto──→│ (foto guardada en   │                  │
+   │──Selec. defect──→│  IndexedDB local)   │                  │
+   │──Escribir com.──→│                     │                  │
+   │──Confirmar maq.─→│                     │                  │
+   │──Guardar────────→│──POST /inspections─→│──Store────────→│
+   │                  │                     │  + Photo        │
+   │                  │←─Response (201)────│←─Confirmation──│
+   │←─✓ Guardado─────│                     │                  │
+   │                  │                     │                  │
+```
+
+### Flow 2: Analista Inspecciona (Offline)
+
+```
+Analista         Frontend (PWA)      Service Worker      IndexedDB
+   │                  │                   │                  │
+   │──Buscar HDR─────→│                   │                  │
+   │                  │ (offline, cached) │                  │
+   │←─Show lote (caché)│                   │                  │
+   │                  │                   │                  │
+   │──Capturar foto──→│                   │                  │
+   │──Registro data──→│──Intercept POST──→│                  │
+   │──Guardar────────→│                   │──Store──────────→│
+   │                  │                   │  {pending:true}  │
+   │←─✓ Guardado loc.─│                   │                  │
+   │ (Sincronizará    │                   │                  │
+   │  cuando haya wifi)│                   │                  │
+   │                  │                   │                  │
+   │ [WiFi vuelve]    │                   │                  │
+   │                  │──Detecta online──→│                  │
+   │                  │                   │──Read pending───→│
+   │                  │                   │  {5 inspections} │
+   │                  │ ←─POST /sync──────────────────────→ │
+   │                  │ (con fotos blob)   │                  │
+   │                  │                    │                  │
+   │ ← ✓ Sincronizado │ ← ← ← ← ← ← ← ← ← │ ← Update synced  │
+```
+
+### Flow 3: Jefe QA Aprueba
+
+```
+Jefe QA          Frontend (PWA)         Backend API         Database
+   │                  │                     │                  │
+   │──Ver pendientes─→│──GET /pending─────→│                  │
+   │                  │                     │──Query────────→  │
+   │                  │←──List[pending]────│←──Resultado───── │
+   │←─Table 42 pend.─│                     │                  │
+   │                  │                     │                  │
+   │──Click lote─────→│                     │                  │
+   │                  │──GET /insp/{id}───→│                  │
+   │                  │←──Photo + details──│                  │
+   │←─Modal abierto──│                     │                  │
+   │                  │                     │                  │
+   │──Presionar Apro→│──POST /approvals───→│──Store approval→│
+   │  (status=APPR.)  │                     │                  │
+   │                  │←──Response (201)───│←─Confirmación──│
+   │←─✓ Aprobado─────│                     │                  │
+   │                  │                     │ [Event published]│
+   │                  │                     │ → NotifyGerente  │
+```
+
+---
+
+## 🔐 SECURITY & RBAC
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  JWT Token (Bearer)                                      │
+│  Contains: user_id, role, exp_time                       │
+│                                                           │
+│  Middleware Authentication:                              │
+│  - Verify JWT on every request                           │
+│  - Extract user_id + role                                │
+│  - Return 401 if invalid                                 │
+│                                                           │
+│  RBAC Rules (per endpoint):                              │
+│  ├─ POST /inspections          → ANALISTA only           │
+│  ├─ GET /inspections/pending   → JEFE_QA only           │
+│  ├─ POST /approvals            → JEFE_QA only           │
+│  ├─ GET /dashboard             → GERENTE only           │
+│  ├─ POST /masters/*            → ADMIN only              │
+│  └─ GET /users                 → ADMIN only              │
+│                                                           │
+│  Example 403:                                            │
+│  Analista tries to POST /approvals                       │
+│  → Middleware rejects (role != JEFE_QA)                 │
+│  → Returns 403 Forbidden                                │
+└──────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🔌 EXTERNAL SYSTEMS INTEGRATION (Optional v1.1)
+
+### ACATEX Integration (Optional)
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  ACATEX (ERP existente en Eliot)                        │
+│                                                          │
+│  Lectura (Nuestro sistema → ACATEX):                    │
+│  GET /api/v1/fabrics       ← Traer telas                │
+│  GET /api/v1/machines      ← Traer máquinas             │
+│  GET /api/v1/lotes/{id}    ← Traer lote                 │
+│                                                          │
+│  Escritura (Nuestro sistema → ACATEX):                  │
+│  PUT /api/v1/lotes/{id}/status                          │
+│     { status: "INSPECTED", defects: [...] }             │
+│                                                          │
+│  Módulo Sync en Backend:                                │
+│  • Cron job cada 5 minutos sincroniza                   │
+│  • Pull: Masters (telas, máquinas)                      │
+│  • Push: Inspection results                             │
+│  • Conflict resolution: ACATEX is source of truth       │
+│                                                          │
+│  Status en aidlc-state.md: PENDING                      │
+│  (Depende de APIs ACATEX disponibles)                   │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📊 DEPLOYMENT DIAGRAM (MVP 30d)
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    ELIOT INFRASTRUCTURE                 │
+│                                                          │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │ Server A (On-Premise)                           │    │
+│  │ ├─ FastAPI Backend (Python)                     │    │
+│  │ │  Port: 8000                                   │    │
+│  │ │  Process manager: systemd / supervisor        │    │
+│  │ │  Load balancer: nginx (reverse proxy)         │    │
+│  │ │                                               │    │
+│  │ ├─ Cron jobs:                                   │    │
+│  │ │  • ACATEX sync (5 min)                        │    │
+│  │ │  • Backup DB (nightly)                        │    │
+│  │ │  • Cleanup old photos (monthly)               │    │
+│  │ │                                               │    │
+│  │ └─ Photo filesystem:                            │    │
+│  │    /var/data/qa-system/photos/                  │    │
+│  └─────────────────────────────────────────────────┘    │
+│                                                          │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │ Server B (Database)                             │    │
+│  │ ├─ PostgreSQL 13+                               │    │
+│  │ │  Port: 5432                                   │    │
+│  │ │  Data dir: /var/lib/postgresql/data/          │    │
+│  │ │  Backup: pgdump nightly                       │    │
+│  │ │  Replication: No (MVP = single instance)      │    │
+│  │ │                                               │    │
+│  │ └─ Monitoring:                                  │    │
+│  │    • CPU, Memory, Disk via Prometheus (opt.)   │    │
+│  └─────────────────────────────────────────────────┘    │
+│                                                          │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │ Network                                          │    │
+│  │ ├─ Internal LAN: 10.0.0.0/8                     │    │
+│  │ │  Server A ↔ Server B (private)               │    │
+│  │ │                                               │    │
+│  │ ├─ Wireless (WiFi 5GHz/2.4GHz)                 │    │
+│  │ │  • Analistas en piso (SSID: Eliot-QA)        │    │
+│  │ │  • Oficina (SSID: Eliot-Office)              │    │
+│  │ │                                               │    │
+│  │ └─ VPN / Acceso remoto (future):               │    │
+│  │    Gerentes remotos via OpenVPN                 │    │
+│  └─────────────────────────────────────────────────┘    │
+│                                                          │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │ Usuarios (Celulares)                            │    │
+│  │ • Analistas: Samsung/iPhone (OS 12+)            │    │
+│  │ • Acceden via HTTPS (certificado autofirmado   │    │
+│  │   o Let's Encrypt)                              │    │
+│  └─────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## ✅ C4 MODEL VALIDATION
+
+**Level 1 (System Context)**:
+- [ ] Actores identificados (Analista, Jefe QA, Gerente, Admin)
+- [ ] Sistemas externos mapeados (ACATEX, Email)
+- [ ] Límites claros entre dentro/fuera del sistema
+
+**Level 2 (Containers)**:
+- [ ] 3 containers principales identificados (Frontend PWA, Backend API, Database)
+- [ ] Comunicación entre containers documentada (REST, SQL, IndexedDB)
+- [ ] Storage especificado (IndexedDB frontend, filesystem backend)
+- [ ] Seguridad/RBAC documentada
+
+---
+
+**Status**: ✅ C4 ARCHITECTURE COMPLETADO
+
+**Next**: CODE GENERATION Phase
+
