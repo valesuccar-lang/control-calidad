@@ -1,7 +1,7 @@
 """SQLAlchemy ORM models for all 8 tables"""
 from sqlalchemy import (
     Column, String, Integer, Text, TIMESTAMP, ForeignKey,
-    CheckConstraint, UniqueConstraint, Index, Enum as SQLEnum
+    CheckConstraint, UniqueConstraint, Index, Enum as SQLEnum, func
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY, UUID

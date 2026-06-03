@@ -1,6 +1,6 @@
 """FastAPI dependency injection for authentication"""
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials as HTTPAuthCredentials
 from typing import Optional, List
 from loguru import logger
 

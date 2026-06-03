@@ -59,6 +59,9 @@ async def login(request: LoginRequest):
     elif request.email == "admin@example.com" and request.password == "password":
         user_id = "admin_001"
         roles = ["ADMIN"]
+    elif request.email == "gerente@example.com" and request.password == "password":
+        user_id = "gerente_001"
+        roles = ["GERENTE"]
     else:
         audit_logger.log_auth_failure(
             email=request.email,
