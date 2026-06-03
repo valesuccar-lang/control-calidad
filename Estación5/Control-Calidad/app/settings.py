@@ -50,16 +50,20 @@ class ApplicationSettings:
                 colorize=True
             )
 
-        # Add file handler (JSON)
-        Path(log_file).parent.mkdir(parents=True, exist_ok=True)
-        logger.add(
-            log_file,
-            format="{message}",
-            level=log_level,
-            serialize=True,  # JSON format
-            rotation="500 MB",  # Rotate every 500MB
-            retention="30 days"  # Keep 30 days
-        )
+        # Add file handler (JSON) — skip in test environments where /var/log may be read-only
+        if not self.config.is_testing:
+            try:
+                Path(log_file).parent.mkdir(parents=True, exist_ok=True)
+                logger.add(
+                    log_file,
+                    format="{message}",
+                    level=log_level,
+                    serialize=True,
+                    rotation="500 MB",
+                    retention="30 days"
+                )
+            except (PermissionError, OSError):
+                pass
 
         logger.info(
             "Logging initialized",
