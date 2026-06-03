@@ -16,7 +16,7 @@ import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 # Configuration
-LINEAR_API_KEY = "REDACTED"
+LINEAR_API_KEY = os.environ.get("LINEAR_API_KEY", "")
 LINEAR_ENDPOINT = "https://api.linear.app/graphql"
 TEAM_ID = "223ad377-615a-4e92-af70-32613c94cea1"  # Valentina Succar team UUID
 PROJECT_NAME = "Control de Calidad"

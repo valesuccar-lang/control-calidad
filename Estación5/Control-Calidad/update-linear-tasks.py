@@ -16,7 +16,7 @@ import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 # Configuration
-LINEAR_API_KEY = "REDACTED"
+LINEAR_API_KEY = os.environ.get("LINEAR_API_KEY", "")
 LINEAR_ENDPOINT = "https://api.linear.app/graphql"
 PROJECT_ID = "19a6b5ec-7a32-44b0-8d48-de0a5d753625"
 
