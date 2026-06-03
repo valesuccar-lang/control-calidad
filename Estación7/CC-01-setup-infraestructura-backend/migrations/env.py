@@ -1,8 +1,16 @@
 import os
+import sys
+from pathlib import Path
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 from dotenv import load_dotenv
+
+# Allow importing app.* from Estación5/Control-Calidad when running from CC-01
+_repo_root = Path(__file__).resolve().parents[3]
+_app_root = _repo_root / "Estación5" / "Control-Calidad"
+if str(_app_root) not in sys.path:
+    sys.path.insert(0, str(_app_root))
 
 load_dotenv()
 
