@@ -22,7 +22,7 @@ def upgrade() -> None:
         sa.Column("email", sa.String(100), unique=True, nullable=False),
         sa.Column("full_name", sa.String(200), nullable=False),
         sa.Column("hashed_password", sa.String(255), nullable=False),
-        sa.Column("roles", postgresql.ARRAY(sa.String), nullable=False, server_default="{}"),
+        sa.Column("roles", sa.JSON, nullable=False, server_default="[]"),
         sa.Column("status", sa.String(20), nullable=False, server_default="ACTIVE"),
         sa.Column("created_at", sa.TIMESTAMP, nullable=False, server_default=sa.func.now()),
         sa.Column("updated_at", sa.TIMESTAMP, nullable=False, server_default=sa.func.now()),

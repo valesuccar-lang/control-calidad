@@ -1,8 +1,6 @@
 """SQLAlchemy Base model with common columns"""
-from sqlalchemy import Column, DateTime, String, func
+from sqlalchemy import Column, DateTime, func
 from sqlalchemy.orm import declarative_base
-from datetime import datetime
-from uuid import uuid4
 
 
 Base = declarative_base()

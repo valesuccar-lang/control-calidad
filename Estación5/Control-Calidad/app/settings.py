@@ -1,6 +1,4 @@
 """Detailed application settings with validation and helpers"""
-import os
-import logging
 from pathlib import Path
 from loguru import logger
 from app.config import settings, DatabaseSettings, JWTSettings, PhotoStorageSettings, SyncSettings, LoggingSettings
@@ -73,8 +71,9 @@ class ApplicationSettings:
     def _validate_database_config(self) -> None:
         """Validate PostgreSQL connection configuration"""
         db_url = self.config.database.url
+        is_test = self.config.environment in ("test", "testing")
 
-        if not db_url.startswith("postgresql+asyncpg://"):
+        if not is_test and not db_url.startswith("postgresql+asyncpg://"):
             raise ValueError(
                 f"DATABASE_URL must use postgresql+asyncpg:// scheme, got: {db_url[:30]}..."
             )

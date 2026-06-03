@@ -1,12 +1,11 @@
 """Masters data API routes (defects, machines, fabrics)"""
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 
 from app.database import get_db_session
 from app.auth.dependencies import require_role
 from app.repositories.masters_repository import DefectRepository, MachineRepository, FabricRepository
 from app.domain.services.masters_service import MastersService
-from app.schemas.masters_schemas import DefectResponse, MachineResponse, FabricResponse
 from app.monitoring.audit_logger import audit_logger
 
 router = APIRouter()

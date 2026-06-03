@@ -1,6 +1,5 @@
 """Integration tests for offline sync functionality"""
 import pytest
-import pytest_asyncio
 from app.config import settings
 
 
@@ -8,11 +7,11 @@ def test_exponential_backoff_delays():
     """Test exponential backoff delay calculation"""
     delays = settings.sync.backoff_delays
     assert len(delays) == settings.sync.max_retries
-    assert delays[0] == 5  # Initial delay
-    assert delays[1] == 10
-    assert delays[2] == 30
-    assert delays[3] == 60
-    assert delays[4] == 60  # Capped at 60
+    assert delays[0] == 5   # 5 * 2^0
+    assert delays[1] == 10  # 5 * 2^1
+    assert delays[2] == 20  # 5 * 2^2
+    assert delays[3] == 40  # 5 * 2^3
+    assert delays[4] == 60  # 5 * 2^4 = 80 → capped at 60
 
 
 def test_sync_configuration():
@@ -63,9 +62,7 @@ async def test_batch_sync_max_items():
 
     # This should fail - more than 100 items
     try:
-        batch = SyncBatchRequest(
-            inspections=[inspection] * 101
-        )
+        SyncBatchRequest(inspections=[inspection] * 101)
         assert False, "Should have raised validation error"
     except ValidationError:
         pass  # Expected

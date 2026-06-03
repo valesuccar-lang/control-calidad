@@ -1,75 +1,99 @@
 """Inspection repository - data access for inspections"""
-from typing import List, Optional
-from sqlalchemy import select, and_
+from typing import List, Optional, Union
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 from loguru import logger
 
-from app.models.orm import Inspection, SyncStatus
+from app.models.orm import Inspection as InspectionORM, SyncStatus
 from app.repositories.base import BaseRepository
 
+import app.domain.entities as domain
 
-class InspectionRepository(BaseRepository[Inspection]):
+
+class InspectionRepository(BaseRepository[InspectionORM]):
     """Repository for Inspection aggregate"""
 
     def __init__(self, session: AsyncSession):
-        super().__init__(session, Inspection)
+        super().__init__(session, InspectionORM)
 
-    async def create(self, inspection: Inspection) -> Inspection:
-        """Create new inspection"""
-        self.session.add(inspection)
+    def _to_orm(self, entity: domain.Inspection) -> InspectionORM:
+        """Convert domain entity to ORM model."""
+        return InspectionORM(
+            inspection_id=entity.inspection_id,
+            lote_id=entity.lote_id,
+            analista_id=entity.analista_id,
+            defect_id=entity.defect_id,
+            comment_text=entity.comment.text,
+            photo_path=entity.photograph.file_path,
+            photo_checksum=entity.photograph.checksum,
+            machine_id=entity.machine_id,
+            check_in=entity.inspection_time.check_in,
+            check_out=entity.inspection_time.check_out,
+            elapsed_seconds=entity.inspection_time.elapsed_seconds,
+            sync_status=SyncStatus(entity.sync_status.value),
+            created_at=entity.created_at,
+        )
+
+    async def create(self, inspection: Union[domain.Inspection, InspectionORM]) -> InspectionORM:
+        """Create new inspection (accepts domain entity or ORM model)."""
+        if isinstance(inspection, domain.Inspection):
+            orm_obj = self._to_orm(inspection)
+        else:
+            orm_obj = inspection
+        self.session.add(orm_obj)
         await self.session.flush()
-        logger.info("Inspection created", inspection_id=str(inspection.inspection_id))
-        return inspection
+        logger.info("Inspection created", inspection_id=str(orm_obj.inspection_id))
+        return orm_obj
 
-    async def get_by_id(self, inspection_id: UUID) -> Optional[Inspection]:
+    async def get_by_id(self, inspection_id: UUID) -> Optional[InspectionORM]:
         """Get inspection by ID"""
-        stmt = select(Inspection).where(Inspection.inspection_id == inspection_id)
+        stmt = select(InspectionORM).where(InspectionORM.inspection_id == inspection_id)
         result = await self.session.execute(stmt)
         return result.scalars().first()
 
-    async def get_all(self, skip: int = 0, limit: int = 100) -> List[Inspection]:
+    async def get_all(self, skip: int = 0, limit: int = 100) -> List[InspectionORM]:
         """Get all inspections with pagination"""
         stmt = (
-            select(Inspection)
+            select(InspectionORM)
             .offset(skip)
             .limit(limit)
-            .order_by(Inspection.created_at.desc())
+            .order_by(InspectionORM.created_at.desc())
         )
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
-    async def get_by_lote_id(self, lote_id: str) -> List[Inspection]:
+    async def get_by_lote_id(self, lote_id: str) -> List[InspectionORM]:
         """Get all inspections for a lote"""
         stmt = (
-            select(Inspection)
-            .where(Inspection.lote_id == lote_id)
-            .order_by(Inspection.created_at.desc())
+            select(InspectionORM)
+            .where(InspectionORM.lote_id == lote_id)
+            .order_by(InspectionORM.created_at.desc())
         )
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
-    async def get_pending_sync(self) -> List[Inspection]:
+    async def get_pending_sync(self) -> List[InspectionORM]:
         """Get all inspections pending synchronization"""
-        stmt = select(Inspection).where(
-            Inspection.sync_status == SyncStatus.PENDING
-        ).order_by(Inspection.created_at.asc())
+        stmt = select(InspectionORM).where(
+            InspectionORM.sync_status == SyncStatus.PENDING
+        ).order_by(InspectionORM.created_at.asc())
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
-    async def get_by_analista(self, analista_id: str, skip: int = 0, limit: int = 100) -> List[Inspection]:
+    async def get_by_analista(self, analista_id: str, skip: int = 0, limit: int = 100) -> List[InspectionORM]:
         """Get inspections by analista"""
         stmt = (
-            select(Inspection)
-            .where(Inspection.analista_id == analista_id)
+            select(InspectionORM)
+            .where(InspectionORM.analista_id == analista_id)
             .offset(skip)
             .limit(limit)
-            .order_by(Inspection.created_at.desc())
+            .order_by(InspectionORM.created_at.desc())
         )
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
-    async def update(self, inspection_id: UUID, data: dict) -> Optional[Inspection]:
+    async def update(self, inspection_id: UUID, data: dict) -> Optional[InspectionORM]:
         """Update inspection"""
         inspection = await self.get_by_id(inspection_id)
         if inspection:
@@ -79,14 +103,14 @@ class InspectionRepository(BaseRepository[Inspection]):
             logger.info("Inspection updated", inspection_id=str(inspection_id))
         return inspection
 
-    async def mark_synced(self, inspection_id: UUID) -> Optional[Inspection]:
+    async def mark_synced(self, inspection_id: UUID) -> Optional[InspectionORM]:
         """Mark inspection as synced"""
         return await self.update(inspection_id, {
             "sync_status": SyncStatus.SYNCED,
             "sync_attempts": 0
         })
 
-    async def mark_sync_failed(self, inspection_id: UUID, error: str) -> Optional[Inspection]:
+    async def mark_sync_failed(self, inspection_id: UUID, error: str) -> Optional[InspectionORM]:
         """Mark inspection sync as failed"""
         inspection = await self.get_by_id(inspection_id)
         if inspection:

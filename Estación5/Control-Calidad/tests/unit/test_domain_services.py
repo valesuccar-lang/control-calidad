@@ -1,8 +1,6 @@
 """Unit tests for domain services"""
 import pytest
-import pytest_asyncio
 from datetime import datetime
-from uuid import uuid4
 
 from app.domain.services.inspection_service import InspectionService
 from app.domain.services.approval_service import ApprovalService

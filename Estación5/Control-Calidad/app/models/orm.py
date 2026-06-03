@@ -1,15 +1,13 @@
 """SQLAlchemy ORM models for all 8 tables"""
 from sqlalchemy import (
     Column, String, Integer, Text, TIMESTAMP, ForeignKey,
-    CheckConstraint, UniqueConstraint, Index, Enum as SQLEnum, func
+    CheckConstraint, UniqueConstraint, Index, Enum as SQLEnum, func, JSON, Uuid
 )
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import ARRAY, UUID
-from datetime import datetime
 from uuid import uuid4
 import enum
 
-from app.models.base import BaseModel, Base
+from app.models.base import BaseModel
 
 
 class UserRole(str, enum.Enum):
@@ -51,12 +49,11 @@ class User(BaseModel):
     email = Column(String(100), unique=True, nullable=False, index=True)
     full_name = Column(String(200), nullable=False)
     hashed_password = Column(String(255), nullable=False)
-    roles = Column(ARRAY(String), nullable=False, default=["ANALISTA"])
+    roles = Column(JSON, nullable=False, default=["ANALISTA"])
     status = Column(String(20), default="ACTIVE", nullable=False)
 
-    __table_args__ = (
-        CheckConstraint("email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}$'", name="valid_email"),
-    )
+    # Email format validated at application layer; no DB-level regex constraint
+    # to stay compatible with SQLite in tests.
 
 
 # ==================== TABLE 2: FABRICS ====================
@@ -117,7 +114,7 @@ class Inspection(BaseModel):
     """Defect inspection records"""
     __tablename__ = "inspections"
 
-    inspection_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4, unique=True, index=True)
+    inspection_id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid4, unique=True, index=True)
     lote_id = Column(String(50), ForeignKey("lotes.lote_id"), nullable=False, index=True)
     analista_id = Column(String(50), ForeignKey("users.id"), nullable=False, index=True)
     defect_id = Column(String(50), ForeignKey("defects.defect_id"), nullable=False)
@@ -137,10 +134,10 @@ class Inspection(BaseModel):
     last_sync_error = Column(String(500))
 
     __table_args__ = (
-        CheckConstraint("char_length(comment_text) >= 10", name="min_comment_length"),
+        CheckConstraint("length(comment_text) >= 10", name="min_comment_length"),
         Index("idx_inspections_lote_id", "lote_id"),
         Index("idx_inspections_analista_id_created", "analista_id", "created_at"),
-        Index("idx_inspections_sync_status_pending", "sync_status", postgresql_where="sync_status = 'PENDING'"),
+        Index("idx_inspections_sync_status_pending", "sync_status"),
         UniqueConstraint("inspection_id", name="uq_inspection_id"),
     )
 
@@ -155,8 +152,8 @@ class Approval(BaseModel):
     """Inspection approval/rejection records"""
     __tablename__ = "approvals"
 
-    approval_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4, unique=True, index=True)
-    inspection_id = Column(UUID(as_uuid=True), ForeignKey("inspections.inspection_id"), nullable=False, unique=True, index=True)
+    approval_id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid4, unique=True, index=True)
+    inspection_id = Column(Uuid(as_uuid=True), ForeignKey("inspections.inspection_id"), nullable=False, unique=True, index=True)
     jefe_qa_id = Column(String(50), ForeignKey("users.id"), nullable=False, index=True)
 
     decision = Column(SQLEnum(ApprovalStatus), nullable=False, index=True)
@@ -184,7 +181,7 @@ class AuditLog(BaseModel):
     """Structured audit events"""
     __tablename__ = "audit_logs"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    id = Column(Uuid(as_uuid=True), primary_key=True, default=uuid4)
     user_id = Column(String(50), ForeignKey("users.id"), index=True)
     action = Column(String(100), nullable=False, index=True)
     entity_type = Column(String(50), nullable=False, index=True)
@@ -204,5 +201,3 @@ class AuditLog(BaseModel):
     user = relationship("User")
 
 
-# Import func for timestamps
-from sqlalchemy import func

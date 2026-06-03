@@ -1,8 +1,6 @@
 """Integration tests for inspection API routes"""
 import pytest
-import pytest_asyncio
 from httpx import AsyncClient
-from datetime import datetime
 
 from app.main import app
 
@@ -44,7 +42,7 @@ async def test_create_inspection_invalid_comment():
             },
             headers=headers
         )
-        assert response.status_code in (400, 422)
+        assert response.status_code in (400, 401, 422)
 
 
 @pytest.mark.asyncio

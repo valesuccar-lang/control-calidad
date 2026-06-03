@@ -1,10 +1,9 @@
 """Approval API routes"""
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
-from uuid import UUID
 
 from app.database import get_db_session
-from app.auth.dependencies import require_role, get_user_id
+from app.auth.dependencies import require_role
 from app.repositories.approval_repository import ApprovalRepository
 from app.repositories.inspection_repository import InspectionRepository
 from app.domain.services.approval_service import ApprovalService

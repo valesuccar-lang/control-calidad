@@ -10,24 +10,19 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: Estación7/CC-01-setup-infraestructura-backend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install ruff
-      - run: ruff check app/ tests/
+      - run: pip install ruff==0.4.10
+      - name: Lint app and tests
+        working-directory: Estación5/Control-Calidad
+        run: ruff check app/ tests/
 
   test:
     name: Tests
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: Estación7/CC-01-setup-infraestructura-backend
-
     services:
       postgres:
         image: postgres:16-alpine
@@ -54,10 +49,13 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install dependencies
+        working-directory: Estación7/CC-01-setup-infraestructura-backend
         run: pip install -r requirements.txt -r requirements-dev.txt
       - name: Run migrations
+        working-directory: Estación7/CC-01-setup-infraestructura-backend
         run: alembic upgrade head
       - name: Run tests with coverage
+        working-directory: Estación5/Control-Calidad
         run: pytest tests/ --cov=app --cov-report=term-missing --cov-fail-under=60
 
   docker:

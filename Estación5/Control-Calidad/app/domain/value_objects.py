@@ -1,7 +1,6 @@
 """Value objects for domain model"""
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 
 class RoleVO(str, Enum):

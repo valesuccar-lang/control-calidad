@@ -1,9 +1,6 @@
 """Structured audit logging with JSON output"""
-import json
 from datetime import datetime
-from typing import Optional, Any
 from loguru import logger
-from app.settings import app_settings
 
 
 class AuditLogger:

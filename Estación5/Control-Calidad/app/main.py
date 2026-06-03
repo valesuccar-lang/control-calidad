@@ -5,7 +5,6 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from loguru import logger
-from contextlib import asynccontextmanager
 
 from app.config import settings
 from app.lifespan import lifespan

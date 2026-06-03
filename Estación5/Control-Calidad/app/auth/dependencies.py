@@ -5,8 +5,6 @@ from typing import Optional, List
 from loguru import logger
 
 from app.auth.security import security_service
-from app.repositories.inspection_repository import InspectionRepository
-from app.database import get_db_session
 
 security = HTTPBearer()
 

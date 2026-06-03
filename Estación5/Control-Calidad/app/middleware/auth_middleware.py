@@ -2,7 +2,6 @@
 import time
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from loguru import logger
 
 from app.monitoring.audit_logger import audit_logger
 
@@ -27,7 +26,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
         # Get IP address
         ip_address = request.client.host if request.client else None
-        user_agent = request.headers.get("User-Agent")
 
         # Process request
         response = await call_next(request)

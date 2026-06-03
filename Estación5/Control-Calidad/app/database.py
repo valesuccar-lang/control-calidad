@@ -18,16 +18,20 @@ async def init_db():
     global engine, async_session_factory
 
     db_url = settings.database.url
+    is_sqlite = db_url.startswith("sqlite")
 
-    engine = create_async_engine(
-        db_url,
-        echo=settings.database.echo,
-        pool_size=settings.database.pool_size,
-        max_overflow=settings.database.max_overflow,
-        pool_pre_ping=settings.database.pool_pre_ping,
-        pool_recycle=3600,  # Recycle connections after 1 hour
-        connect_args={"server_settings": {"application_name": "fastapi_qc"}}
-    )
+    if is_sqlite:
+        engine = create_async_engine(db_url, echo=settings.database.echo, poolclass=NullPool)
+    else:
+        engine = create_async_engine(
+            db_url,
+            echo=settings.database.echo,
+            pool_size=settings.database.pool_size,
+            max_overflow=settings.database.max_overflow,
+            pool_pre_ping=settings.database.pool_pre_ping,
+            pool_recycle=3600,
+            connect_args={"server_settings": {"application_name": "fastapi_qc"}}
+        )
 
     async_session_factory = async_sessionmaker(
         engine,

@@ -99,8 +99,8 @@ class Settings(BaseSettings):
     @field_validator("environment")
     @classmethod
     def validate_environment(cls, v: str) -> str:
-        if v not in ("development", "staging", "production"):
-            raise ValueError("ENVIRONMENT must be 'development', 'staging', or 'production'")
+        if v not in ("development", "staging", "production", "test", "testing"):
+            raise ValueError("ENVIRONMENT must be 'development', 'staging', 'production', or 'test'")
         return v
 
     @property
@@ -109,7 +109,11 @@ class Settings(BaseSettings):
 
     @property
     def is_development(self) -> bool:
-        return self.environment == "development"
+        return self.environment in ("development", "test", "testing")
+
+    @property
+    def is_test(self) -> bool:
+        return self.environment in ("test", "testing")
 
 
 # Global settings instance

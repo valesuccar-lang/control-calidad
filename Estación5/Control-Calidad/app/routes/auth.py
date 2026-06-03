@@ -2,12 +2,10 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel, EmailStr
 from loguru import logger
-from datetime import timedelta
 
 from app.auth.security import security_service
 from app.auth.dependencies import get_current_user
 from app.monitoring.audit_logger import audit_logger
-from app.config import settings
 
 router = APIRouter(tags=["authentication"])
 
@@ -46,8 +44,6 @@ async def login(request: LoginRequest):
     """
     # TODO: Validate credentials against user database
     # This is a placeholder - in production, query users table and verify password
-    from app.repositories.inspection_repository import InspectionRepository
-    from app.database import get_db_session
 
     # For now, accept demo credentials
     if request.email == "analista@example.com" and request.password == "password":
