@@ -68,5 +68,3 @@ logs/
 Thumbs.db
 
 # Project specific
-/migrations/versions/
-!
