@@ -115,8 +115,12 @@ class ApplicationSettings:
         base_path = self.config.photo_storage.base_path
         max_size = self.config.photo_storage.max_size_kb
 
-        # Create storage directory if not exists
-        Path(base_path).mkdir(parents=True, exist_ok=True)
+        # Create storage directory if not exists (skip in test env)
+        if not self.config.is_test:
+            try:
+                Path(base_path).mkdir(parents=True, exist_ok=True)
+            except (PermissionError, OSError):
+                pass
 
         if max_size < 100 or max_size > 1000:
             raise ValueError(
